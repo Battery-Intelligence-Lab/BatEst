@@ -9,6 +9,7 @@ main_*.m
 # with 'my_'
 my*
 *parameters*.m
+!set_parameters.m
 !cell_parameters.m
 !model_parameters.m
 

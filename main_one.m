@@ -24,7 +24,7 @@ if ~exist('input_params','var'), input_params = []; end
 % Estimator: choose from the available Methods (Fmincon, PEM)
 
 % Settings
-ModelName = 'EHMT';
+ModelName = 'Schiffer';
 Target = 'Simulate';
 Estimator = 'PEM';
 

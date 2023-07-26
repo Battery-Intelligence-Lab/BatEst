@@ -1,0 +1,24 @@
+# Ignore the following files and folders
+
+# Users can store multiple main files if they are labelled with an
+# underscore followed by any number of characters not equal to 'one'
+main_*.m
+!main_one.m
+
+# Users can store their own parameters files and other files beginning
+# with 'my_'
+my*
+*parameters*.m
+!cell_parameters.m
+!model_parameters.m
+
+# Windows default autosave extension
+*.asv
+
+# Windows generated files
+Thumbs.db
+
+# Save location
+Data/*
+!Data/DATA_PREP_GUIDE.md
+!Data/Examples/

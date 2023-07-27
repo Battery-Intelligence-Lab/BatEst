@@ -1,9 +1,9 @@
-The Data\Examples\ folder contains example datasets which can be used to test the code.
+The Data/Examples/ folder contains example datasets which can be used to test the code.
 
 Datasets in the parquet file format can be loaded into Matlab using the command:
 `Dataset = import_parquet('Name_of_Dataset.parquet');`
 Note that `import_parquet` is an alternative to Matlab's `parquetread` which can be used in cases where it is undesirable to rename the column variables in the file.
-See Data\DATA_PREP_GUIDE for more information.
+See Data/DATA_PREP_GUIDE for more information.
 
 The datasets are:
 

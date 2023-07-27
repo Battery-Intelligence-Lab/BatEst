@@ -40,6 +40,14 @@ else
 end
 tpoints = start:finish;
 
+% Check length of dataset
+if tpoints(end)-tpoints(1) > 50*3600
+    error(['This dataset is over 50 hours long, please consider fitting ' ...
+           'a smaller subset of the data by updating the data selection ' ...
+           'parameters in cell_parameters.m, or simply comment out this ' ...
+           'error in unpack_data.m if you would like to continue.']);
+end
+
 % Optional down-sampling to reduce the number of datapoints
 target = 900;
 ds = max(floor(length(tpoints)/target),1);

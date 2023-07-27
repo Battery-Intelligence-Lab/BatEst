@@ -6,7 +6,7 @@ allout = [];
 
 %% Iterations - copy (n,k) iterations from  main.m
 % Load index of measurement data to access multiple files
-index_name = 'Data\Examples\Test_Index.parquet';
+index_name = 'Data/Examples/Test_Index.parquet';
 index = parquetread(index_name);
 
 % Set the cell number(s)
@@ -21,7 +21,7 @@ for k = 1:length(filenames)
 
 %% Compilation
 % Load all files corresponding to the same model in the specified folder
-allout = parquetread([folder '\out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
+allout = parquetread([folder '/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
 
 % Compile output tables
 if ~istable(allout)
@@ -40,7 +40,7 @@ allout = movevars(allout,'RowN','After','Test_Number');
 allout = sortrows(allout,{'Cell_Number','Test_Number','RowN'});
 
 % Save compiled output
-save_output(allout,[folder '\allout_' ModelName],true);
+save_output(allout,[folder '/allout_' ModelName],true);
 
 
 end

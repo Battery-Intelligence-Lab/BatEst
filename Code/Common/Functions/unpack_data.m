@@ -1,6 +1,6 @@
 function sol = unpack_data(data,params,j)
 % This function saves the data in the structure required by the estimation
-% code. For guidance on importing data, see the DATA_PREP_GUIDE in \Data.
+% code. For guidance on importing data, see the DATA_PREP_GUIDE in /Data.
 % The states are unknown, but estimates for the initial states may
 % optionally be passed to the next step along with other parameter values
 % saved within the 'sol' structure. The vectors must be column vectors.

@@ -21,7 +21,7 @@ uu(1:nt,2) = u2(tt);
 uu(1:nt,3) = u3(tt);
 
 % Or, load the protocol from file
-%     load('Data\Examples\drive_cycle.parquet','time','current');
+%     load('Data/Examples/drive_cycle.parquet','time','current');
 %     tt = time;
 %     uu = current;
 

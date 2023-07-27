@@ -56,7 +56,7 @@ Next, let's demonstrate the second main functionality of the code: parameter est
 
 ## Step 3. Comparison between model and data
 
-If you would like to load your own data, please first read the `DATA_PREP_GUIDE` on how to prepare your data. Alternatively, an example dataset made available by T. Raj and D. A. Howey [2] is stored within the repository. Load this dataset with the command `Dataset = import_parquet('Data\Examples\Raj2020_Cycling.parquet');`.
+If you would like to load your own data, please first read the `DATA_PREP_GUIDE` on how to prepare your data. Alternatively, an example dataset made available by T. Raj and D. A. Howey [2] is stored within the repository. Load this dataset with the command `Dataset = import_parquet('Data/Examples/Raj2020_Cycling.parquet');`.
 
 Reference [2]: T. Raj, Path Dependent Battery Degradation Dataset Part 1, University of Oxford (2020). doi.org/10.1002/batt.202000160.
 
@@ -95,7 +95,7 @@ You may now be interested to compare results using different estimation Methods 
 
 To perform a step-by-step estimatin, we can use the iterative `main.m`, rather than `main_one.m`. The aim here is to parameterise an equivalent circuit model `RORC` consisting of a resistor, an OCV source and an RC pair in series. The `RORC` has 6 unknown parameters by default, namely the negative electrode capacity (`Qn`), negative/positive electrode capacity ratio (`nu`), cyclable lithium/positive electrode capacity ratio (`miu`), RC-pair time constant (`tau1`), RC-pair capacitance (`C1`), and the series resistance (`Rs`).
 
-By considering the form of the model, we find that different subsets of these parameters are idenitifable from different measurements, e.g. from a pseudo-OCV measurement we cannot identify the dynamic parameters but the electrode stoichiometry parameters (`Qn`, `nu` and `miu`), which control the relative ``stretch and shift`` of the electrode OCPs, can be reliably estimated. The example dataset `Raj2020_Tests.parquet`, stored in Data\Examples, contains battery test data from a pseudo-OCV measurement as well as CCCV capacity tests and relaxation periods. In this example, we identify the 6 parameters using 3 steps:
+By considering the form of the model, we find that different subsets of these parameters are idenitifable from different measurements, e.g. from a pseudo-OCV measurement we cannot identify the dynamic parameters but the electrode stoichiometry parameters (`Qn`, `nu` and `miu`), which control the relative ``stretch and shift`` of the electrode OCPs, can be reliably estimated. The example dataset `Raj2020_Tests.parquet`, stored in Data/Examples, contains battery test data from a pseudo-OCV measurement as well as CCCV capacity tests and relaxation periods. In this example, we identify the 6 parameters using 3 steps:
 
 1. Identify the electrode stoichiometry parameters (`Qn`, `nu` and `miu`) from the charging branch of the pseudo-OCV measurement found under `Cycle_Index==0` and `Step_Index==10` in the Dataset. Label this dataset with `DataType = 'Pseudo-OCV charge'`.
 2. Identify the RC-pair time constant (`tau1`) from the relaxation step found under `Cycle_Index==0` and `Step_Index==5`. Label this dataset with `DataType = 'Relaxation'`.
@@ -117,7 +117,7 @@ elseif j>2
 end
 ```
 
-Now we are ready to run the 3-step estimation of the `RORC` parameters using `out = main;`. There is no need to pass any dataset this time because `main.m` locates and loads the Dataset using the index of available datasets in Data\Examples\Test_Index.parquet. Feel free to use this parquet table as a template to store details of your own datasets.
+Now we are ready to run the 3-step estimation of the `RORC` parameters using `out = main;`. There is no need to pass any dataset this time because `main.m` locates and loads the Dataset using the index of available datasets in Data/Examples/Test_Index.parquet. Feel free to use this parquet table as a template to store details of your own datasets.
 
 
 ## Step 7. Step-by-step estimation of the 7 EHM parameters
@@ -132,7 +132,7 @@ In this example, we identify the 7 parameters using a similar set of steps:
 
 Again, we also compute a coulombic efficiency `CE` to cope with any discrepancy in charge throughtput due to model or experimental error.
 
-Run the 3-step estimation of the `EHM` parameters using `out = main;` and find the output saved in \Data.
+Run the 3-step estimation of the `EHM` parameters using `out = main;` and find the output saved in /Data.
 
 
 # How to Edit the Input Files
@@ -145,11 +145,11 @@ The input profiles for current (and optionally also ambient temperature and volt
 
 ## b) How to Change the Simulation Settings/Parameters
 
-To change a setting or a value of a model-specific parameter, locate and edit the Model\ `model_parameters.m` file. The code is not guaranteed to obtain a solution for all combinations of parameter values and simulations protocols, please refer to the section on Common Errors for advice on avoiding known causes of failure.
+To change a setting or a value of a model-specific parameter, locate and edit the Model/ `model_parameters.m` file. The code is not guaranteed to obtain a solution for all combinations of parameter values and simulations protocols, please refer to the section on Common Errors for advice on avoiding known causes of failure.
 
 ## c) How to Change which Parameters to Estimate
 
-The choice of parameters to estimate is made according to the uncertainty valuse in `uncert` vector in the Model\ `set_model.m`. Any variables with an uncertainty of zero will not be estimated to reduce the computation time.
+The choice of parameters to estimate is made according to the uncertainty valuse in `uncert` vector in the Model/ `set_model.m`. Any variables with an uncertainty of zero will not be estimated to reduce the computation time.
 
 ## d) How to Import a Dataset
 
@@ -157,7 +157,7 @@ Data can be imported into MATLAB from a number of different file formats. For an
 
 ## e) How to Change the Electrode OCP Functions
 
-Depending on the model it is necessary to either define one OCV function or two electrode OCPs as functions of stoichiometry. These functions can be define using Matlab .m functions or by loading from data. In either case, store the functions or data somewhere on the file path (e.g. Data\Examples) and define the `OCP_filename`(s) in [cell_parameters.m](Code/Common/cell_parameters.m). The selected functions are later passed to optimiser via the common function [OCV_function.m](Code/Common/Functions/OCV_function.m) or [electrode_potentials.m](Code/Common/Functions/electrode_potentials.m).
+Depending on the model it is necessary to either define one OCV function or two electrode OCPs as functions of stoichiometry. These functions can be define using Matlab .m functions or by loading from data. In either case, store the functions or data somewhere on the file path (e.g. Data/Examples) and define the `OCP_filename`(s) in [cell_parameters.m](Code/Common/cell_parameters.m). The selected functions are later passed to optimiser via the common function [OCV_function.m](Code/Common/Functions/OCV_function.m) or [electrode_potentials.m](Code/Common/Functions/electrode_potentials.m).
 
 
 # How to Edit or Create a Model

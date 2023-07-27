@@ -32,8 +32,7 @@ index = parquetread([folder index_filename]);
 % So let's use constant tauT and tauA based on the mean OCVT results.
 
 % Set the cell number(s)
-% cell_num = [3,3.2,3.3,4,4.2,4.3,5,6,7,8,9,9.2,10,10.2,11,11.2,20,21,21.2,22];
-cell_num = [11,11.2,20,21,21.2,22];
+cell_num = [3,3.2,3.3,4,4.2,4.3,5,6,7,8,9,9.2,10,10.2,11,11.2,20,21,21.2,22];
 for n = cell_num
 
 OCV_index = find(index.Cell_Number==single(n) & index.OCV_Test);
@@ -66,35 +65,29 @@ if j==1
 
     % Fit the stoichiometry bounds if not already done
     ModelName = 'OCV';
-    % try
-    %     out = parquetread(['Data/Brussels/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
-    %     params = load_output(out);
-    %     continue;
-    % catch
+    try
+        out = parquetread(['Data/Brussels/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
+        params = load_output(out);
+        continue;
+    catch
         disp('Loading OCV charge data.')
         Dataset = import_parquet([folder '/' subfolder{2*k-1} '/' filenames{2*k-1} '.parquet']);
-    % end
+    end
 elseif j==2
     % Fit the thermal parameters --- do not fit, just use mean values
     ModelName = 'OCVT';
     disp('Loading dynamic data.')
     Dataset = import_parquet([folder '/' subfolder{2*k} '/' filenames{2*k} '.parquet']);
-    % try
-    %     out = parquetread(['Data/Brussels/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
-    %     params = load_output(out);
-    %     continue;
-    % catch
-    % end
     continue;
 elseif j==3
     % Fit the diffusion timescale
     ModelName = 'EHMT';
-    % try
-    %     out = parquetread(['Data/Brussels/out_' ModelName '0_' num2str(n) '_' num2str(k) '.parquet']);
-    %     params = load_output(out);
-    %     continue;
-    % catch
-    % end
+    try
+        out = parquetread(['Data/Brussels/out_' ModelName '0_' num2str(n) '_' num2str(k) '.parquet']);
+        params = load_output(out);
+        continue;
+    catch
+    end
 elseif j>3
     % Fit the dynamics and film resistance
 end
@@ -107,6 +100,7 @@ fprintf('\nComputation started at %s\n', datetime("now"));
 reset_path;
 addpath(genpath(strcat('./Code/Models/',ModelName)));
 addpath(genpath(strcat('./Code/Methods/',Estimator)));
+addpath(genpath(strcat('./Data/Brussels')));
 
 % Define dimensionless model
 [Model, params] = step0(ModelName,j,params);

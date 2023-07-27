@@ -8,9 +8,9 @@ Type = 'ROCV';
 [hr] = struct2array(params, {'hr'});
 
 % Set model parameters
-Qn = 3.3*hr;         % negative electrode capacity (As)
-nu = 1;              % negative/positive electrode capacity ratio (non-dim.)
-miu = 1;             % cyclable lithium/positive electrode capacity ratio (non-dim.)
+Qn = 3.4*hr;         % negative electrode capacity (As)
+nu = 0.79;           % negative/positive electrode capacity ratio (non-dim.)
+miu = 0.87;          % cyclable lithium/positive electrode capacity ratio (non-dim.)
 Rs = 0.01;           % series resistance (Ohm)
 
 % Update capacity

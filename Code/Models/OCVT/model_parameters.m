@@ -8,9 +8,9 @@ Type = 'OCVT';
 [hr] = struct2array(params, {'hr'});
 
 % Set model parameters
-Qn = 3.3*hr;         % negative electrode capacity (As)
-nu = 1;              % negative/positive electrode capacity ratio (non-dim.)
-miu = 1;             % cyclable lithium/positive electrode capacity ratio (non-dim.)
+Qn = 3.4*hr;         % negative electrode capacity (As)
+nu = 0.79;           % negative/positive electrode capacity ratio (non-dim.)
+miu = 0.87;          % cyclable lithium/positive electrode capacity ratio (non-dim.)
 Cp = 40;             % heat capacity of the core (J K-1)
 Cps = 4;             % heat capacity of the surface (J K-1)
 tauT = 20;           % internal heat transfer timescale (s)

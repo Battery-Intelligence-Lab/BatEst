@@ -1,6 +1,6 @@
 function sol = unpack_data(data,params,j)
 % This function saves the data in the structure required by the estimation
-% code. For guidance on importing data, see the DATA_PREP_GUIDE in \Data.
+% code. For guidance on importing data, see the DATA_PREP_GUIDE in /Data.
 % The states are unknown, but estimates for the initial states may
 % optionally be passed to the next step along with other parameter values
 % saved within the 'sol' structure. The vectors must be column vectors.
@@ -39,6 +39,14 @@ else
     finish = length(data.Test_Time_s);
 end
 tpoints = start:finish;
+
+% Check length of dataset
+if tpoints(end)-tpoints(1) > 50*3600
+    error(['This dataset is over 50 hours long, please consider fitting ' ...
+           'a smaller subset of the data by updating the data selection ' ...
+           'parameters in cell_parameters.m, or simply comment out this ' ...
+           'error in unpack_data.m if you would like to continue.']);
+end
 
 % Optional down-sampling to reduce the number of datapoints
 target = 900;

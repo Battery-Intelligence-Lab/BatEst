@@ -33,4 +33,4 @@ The main scripts are:
 - `main.m` is for running batches or simulations or optimisation steps
 - `reset_path.m` adds necessary subfunctions to the MATLAB path
 
-The Code folder contains all subfunctions and Data contains some example datasets. Please see Code\CodeStructure for a diagram showing how the other functions are used.
+The Code folder contains all subfunctions and Data contains some example datasets. Please see Code/CodeStructure for a diagram showing how the other functions are used.

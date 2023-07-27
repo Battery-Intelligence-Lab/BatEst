@@ -6,7 +6,7 @@ close all;
 reset_path;
 
 % To create a Dataset use: Dataset = importParquet('XXX.csv');
-% Dataset = parquetread('Code\Common\Import\ExampleDataset.parquet');
+% Dataset = parquetread('Code/Common/Import/ExampleDataset.parquet');
 if ~exist('Dataset','var'), Dataset = []; end
 
 % To append the output from a previous estimation, use the input out.
@@ -19,7 +19,7 @@ if ~exist('input_params','var'), input_params = []; end
 
 %% Iterations
 % Load index of measurement data to access multiple files
-index_name = 'Data\Examples\Test_Index.parquet';
+index_name = 'Data/Examples/Test_Index.parquet';
 index = parquetread(index_name);
 
 % Set the cell number(s)
@@ -54,7 +54,7 @@ if j==1
     ModelName = 'OCV';
     Target = 'Parameter';
     Estimator = 'PEM';
-    Dataset = import_parquet([subfolder{j} '\' filenames{j}]);
+    Dataset = import_parquet([subfolder{j} '/' filenames{j}]);
 elseif j==2
     ModelName = 'RORC';
 end
@@ -65,8 +65,8 @@ fprintf('\nComputation started at %s\n', datetime("now"));
 
 % Add relevant paths
 reset_path;
-addpath(genpath(strcat('.\Code\Models\',ModelName)));
-addpath(genpath(strcat('.\Code\Methods\',Estimator)));
+addpath(genpath(strcat('./Code/Models/',ModelName)));
+addpath(genpath(strcat('./Code/Methods/',Estimator)));
 
 % Define dimensionless model
 [Model, params] = step0(ModelName,j,params);
@@ -93,8 +93,8 @@ params = compute_RMSE(Target,params,true_sol,pred_sol);
 out = tabulate_output(params,out);
 
 % Save output and current figure (true = overwrite by default)
-save_output(out,['Data\out_' ModelName '_' num2str(n) '_' num2str(k)],true);
-% save_plot(gcf,['Data\plot_' ModelName '_' num2str(n) '_' num2str(k)],true);
+save_output(out,['Data/out_' ModelName '_' num2str(n) '_' num2str(k)],true);
+% save_plot(gcf,['Data/plot_' ModelName '_' num2str(n) '_' num2str(k)],true);
 
 
 end

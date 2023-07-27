@@ -6,7 +6,7 @@ close all;
 reset_path;
 
 % To create a Dataset use: Dataset = importParquet('XXX.csv');
-% Dataset = parquetread('Code\Common\Import\ExampleDataset.parquet');
+% Dataset = parquetread('Code/Common/Import/ExampleDataset.parquet');
 if ~exist('Dataset','var'), Dataset = []; end
 
 % To append the output from a previous estimation, use the input out.
@@ -34,8 +34,8 @@ fprintf('\nComputation started at %s\n', datetime("now"));
 
 % Add relevant paths
 reset_path;
-addpath(genpath(strcat('.\Code\Models\',ModelName)));
-addpath(genpath(strcat('.\Code\Methods\',Estimator)));
+addpath(genpath(strcat('./Code/Models/',ModelName)));
+addpath(genpath(strcat('./Code/Methods/',Estimator)));
 
 % Define dimensionless model
 [Model, params] = step0(ModelName,0,input_params);
@@ -62,8 +62,8 @@ params = compute_RMSE(Target,params,true_sol,pred_sol);
 out = tabulate_output(params,out);
 
 % Save output and current figure
-save_output(out,['Data\out_' ModelName]);
-% save_plot(gcf,['Data\plot_' ModelName]);
+save_output(out,['Data/out_' ModelName]);
+% save_plot(gcf,['Data/plot_' ModelName]);
 
 
 end

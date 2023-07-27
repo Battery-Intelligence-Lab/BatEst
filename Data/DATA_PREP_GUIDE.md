@@ -37,13 +37,13 @@ To do this, please see our [file-format-conversion](https://github.com/Battery-I
 
 # How the code imports the data into Matlab
 
-Any Parquet file including columns for time, cycle number, step number, current, voltage and (optionally) temperature can be loaded into Matlab using the `import_parquet.m` function which can be found in Data\Examples (or Matlab's `parquetread` if the file already has the column names expected by the code). The `import_parquet.m` function takes a file name as its only input and can be edited to cope with a different set of column names.
+Any Parquet file including columns for time, cycle number, step number, current, voltage and (optionally) temperature can be loaded into Matlab using the `import_parquet.m` function which can be found in Data/Examples (or Matlab's `parquetread` if the file already has the column names expected by the code). The `import_parquet.m` function takes a file name as its only input and can be edited to cope with a different set of column names.
 
 To modify the column names according to the data you have, open `import_parquet.m` and modify the list of names in `column_names_from_file`. To load your data, define the `filename` as a string and then enter `Dataset = import_parquet(filename);` into the command line. This will load your Parquet file as a table called `Dataset`.
 
-The `Dataset` table can be passed to the `main.m` function of the code as an input. Within the code, the contents of the table are loaded into a structure (called `true_sol`) using the `unpack_data.m` function which can be found in Code\Common\Functions.
+The `Dataset` table can be passed to the `main.m` function of the code as an input. Within the code, the contents of the table are loaded into a structure (called `true_sol`) using the `unpack_data.m` function which can be found in Code/Common/Functions.
 
 
 # Example data
 
-Some example datasets are stored in Data\Examples. Please see Data\Examples\README for more information about the source of the data.
+Some example datasets are stored in Data/Examples. Please see Data/Examples/README for more information about the source of the data.

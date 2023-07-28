@@ -17,8 +17,8 @@ tauT = 10.2404;      % internal heat transfer timescale (s)
 tauA = 2.0168;       % external heat transfer timescale (s)
 tau_ref = 1200;      % diffusion time constant (s)
 b = 0.3;             % negative electrode surface/particle volume ratio (non-dim.)
-Ip_ref = 3;          % reference exchange current in the positive electrode (A)
-In_ref = 3;          % reference exchange current in the negative electrode (A)
+Ip_ref = 2.9;        % reference exchange current in the positive electrode (A)
+In_ref = 2.9;        % reference exchange current in the negative electrode (A)
 Rf = 0.01;           % film resistance (Ohm)
 
 % Update capacity

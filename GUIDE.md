@@ -73,7 +73,7 @@ Our equivalent circuit model `ROCV` has 2 parameters, namely the capacity `Qn` a
 
 In the file `main_one.m`, let us now change the `Target` to `Parameter`, i.e. we would like to estimate the parameters as well as simulate and plot the data. For this `Target`, we also need to choose the `Estimator`. Let's keep this set to `PEM`, which stands for prediction error minimisation. This method is provided as a built-in function for MATLAB and is able to estimate initial states as well as constant parameters.
 
-This time run the code using `out = main(Dataset);`. By including the output `out` in this call, we will be able to retrieve the estimated parameters. The progress of the optimiser will be displayed as it running.
+This time run the code using `out = main_one(Dataset);`. By including the output `out` in this call, we will be able to retrieve the estimated parameters. The progress of the optimiser will be displayed as it running.
 
 Once the code has run, `out` will be a table containing the results. The estimated values can be found under their parameter names, e.g. `Qn` or `Rs`. The values named `c0_1` to `c0_4` should be between 0 and 1 and they correspond to the dimensionless values returned directly from the optimiser (in the order listed above). Also stored are the initial values of each state and the root mean square error (RMSE) between a simulation using the estimated parameters and the data.
 
@@ -93,7 +93,7 @@ You may now be interested to compare results using different estimation Methods 
 
 ## Step 6. Step-by-step estimation of the 7 RORC parameters
 
-To perform a step-by-step estimatin, we can use the iterative `main.m`, rather than `main_one.m`. The aim here is to parameterise an equivalent circuit model `RORC` consisting of a resistor, an OCV source and an RC pair in series. The `RORC` has 6 unknown parameters by default, namely the negative electrode capacity (`Qn`), negative/positive electrode capacity ratio (`nu`), cyclable lithium/positive electrode capacity ratio (`miu`), RC-pair time constant (`tau1`), RC-pair capacitance (`C1`), and the series resistance (`Rs`).
+To perform a step-by-step estimatin, we can use the iterative `main_multi.m`, rather than `main_one.m`. The aim here is to parameterise an equivalent circuit model `RORC` consisting of a resistor, an OCV source and an RC pair in series. The `RORC` has 6 unknown parameters by default, namely the negative electrode capacity (`Qn`), negative/positive electrode capacity ratio (`nu`), cyclable lithium/positive electrode capacity ratio (`miu`), RC-pair time constant (`tau1`), RC-pair capacitance (`C1`), and the series resistance (`Rs`).
 
 By considering the form of the model, we find that different subsets of these parameters are idenitifable from different measurements, e.g. from a pseudo-OCV measurement we cannot identify the dynamic parameters but the electrode stoichiometry parameters (`Qn`, `nu` and `miu`), which control the relative ``stretch and shift`` of the electrode OCPs, can be reliably estimated. The example dataset `Raj2020_Tests.parquet`, stored in Data/Examples, contains battery test data from a pseudo-OCV measurement as well as CCCV capacity tests and relaxation periods. In this example, we identify the 6 parameters using 3 steps:
 
@@ -117,7 +117,7 @@ elseif j>2
 end
 ```
 
-Now we are ready to run the 3-step estimation of the `RORC` parameters using `out = main;`. There is no need to pass any dataset this time because `main.m` locates and loads the Dataset using the index of available datasets in Data/Examples/Test_Index.parquet. Feel free to use this parquet table as a template to store details of your own datasets.
+Now we are ready to run the 3-step estimation of the `RORC` parameters using `out = main_multi;`. There is no need to pass any dataset this time because `main_multi.m` locates and loads the Dataset using the index of available datasets in Data/Examples/Test_Index.parquet. Feel free to use this parquet table as a template to store details of your own datasets.
 
 
 ## Step 7. Step-by-step estimation of the 7 EHM parameters
@@ -132,7 +132,7 @@ In this example, we identify the 7 parameters using a similar set of steps:
 
 Again, we also compute a coulombic efficiency `CE` to cope with any discrepancy in charge throughtput due to model or experimental error.
 
-Run the 3-step estimation of the `EHM` parameters using `out = main;` and find the output saved in /Data.
+Run the 3-step estimation of the `EHM` parameters using `out = main_multi;` and find the output saved in /Data.
 
 
 # How to Edit the Input Files

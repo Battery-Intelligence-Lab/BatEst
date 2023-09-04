@@ -1,4 +1,4 @@
-function [out, params] = main(Dataset,out,input_params)
+function [out, params] = main_multi(Dataset,out,input_params)
 % This is the main script to run multiple iterations, try main_one.m first.
 % The inputs and outputs are optional.
 

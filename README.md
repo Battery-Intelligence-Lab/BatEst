@@ -30,7 +30,7 @@ Please cite the Zenodo DOI (coming soon).
 
 The main scripts are:
 - `main_one.m` is for running a single simulation or optimisation step
-- `main.m` is for running batches or simulations or optimisation steps
+- `main_multi.m` is for running batches of simulations or optimisation steps
 - `reset_path.m` adds necessary subfunctions to the MATLAB path
 
 The Code folder contains all subfunctions and Data contains some example datasets. Please see Code/CodeStructure for a diagram showing how the other functions are used.

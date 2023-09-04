@@ -13,7 +13,7 @@ nu = 1;              % negative/positive electrode capacity ratio (non-dim.)
 miu = 1;             % cyclable lithium/positive electrode capacity ratio (non-dim.)
 tau_ref = 200;       % diffusion time constant (s)
 b = 0.3;             % negative electrode surface/particle volume ratio (non-dim.)
-Ip_ref = 2;          % reference exchange current in the positive electrode (A)
+Ip_ref = 20;         % reference exchange current in the positive electrode (A)
 In_ref = 2;          % reference exchange current in the negative electrode (A)
 Rf = 0.01;           % film resistance (Ohm)
 

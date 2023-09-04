@@ -4,6 +4,7 @@
 # underscore followed by any number of characters not equal to 'one'
 main_*.m
 !main_one.m
+!main_multi.m
 
 # Users can store their own parameters files and other files beginning
 # with 'my_'

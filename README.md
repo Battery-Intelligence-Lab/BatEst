@@ -4,6 +4,8 @@ Matlab code for battery simulations and parameter estimation.
 
 Please read the [GUIDE](GUIDE.md) to get started.
 
+[![DOI](https://zenodo.org/badge/670707813.svg)](https://zenodo.org/badge/latestdoi/670707813)
+
 
 # Use Cases
 

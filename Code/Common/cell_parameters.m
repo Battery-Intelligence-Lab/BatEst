@@ -42,9 +42,10 @@ TtoK = Tmin+CtoK; % temperature conversion factor (K)
 % OCP_filename = {'Example_OCV.parquet'};
 
 % Set OCP filename(s)
-OCP_filename = {'Raj2020_NCA.parquet','Raj2020_Graphite.parquet'};
+% OCP_filename = {'Raj2020_NCA.parquet','Raj2020_Graphite.parquet'};
 % OCP_filename = {'LGM50_NMC811','LGM50_GraphiteSiOx'};
 % OCP_filename = {'Hu2012_LiNMC'};
+OCP_filename = {'NCR18650PF_NCA','NCR18650PF_Graphite'};
 
 
 %% Data selection
@@ -61,16 +62,21 @@ cycle_step = [];
 DataType = '';
 
 % Select subset of data
-% if j==1
-%     cycle_step = [0;10];
-%     DataType = 'Pseudo-OCV charge';
-% elseif j==2
-%     cycle_step = [0;5];
-%     DataType = 'Relaxation';
-% elseif j>2
-%     cycle_step = [0;6];
-%     DataType = 'CCCV charge';
-% end
+% cycle_step = [1;5];
+if j==1
+    cycle_step = [1;3];
+    DataType = 'Pseudo-OCV charge';
+elseif j==2 || j>3
+    cycle_step = [1;5]; % 1C CCCV charge
+    % cycle_step = [1;11]; % C/2 CCCV charge
+    DataType = 'CCCV charge';
+elseif j==3
+    cycle_step = [1;10];
+    DataType = 'Relaxation';
+end
+% [j;6] for Campaign 003, [j;7;8] for Campaign 009,
+% [j,16,22], j=1:3, for pulse data, [1;11] for C/2 CCCV charge,
+% [1,3,4] for pseudo-OCV charge and discharge, [1;10] for relaxation
 
 
 %% Compile all parameters into the params structure

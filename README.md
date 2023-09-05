@@ -23,7 +23,7 @@ If you encounter a problem or any unexpected results, please create an Issue on 
 
 # How to Cite this Code
 
-Please cite the Zenodo DOI (coming soon).
+Please cite the Zenodo DOI, which can be found on the GitHub page.
 
 
 # Technical Features

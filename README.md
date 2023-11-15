@@ -4,6 +4,8 @@ Matlab code for battery simulations and parameter estimation.
 
 Please read the [GUIDE](GUIDE.md) to get started.
 
+[![DOI](https://zenodo.org/badge/670707813.svg)](https://zenodo.org/badge/latestdoi/670707813)
+
 
 # Use Cases
 
@@ -23,7 +25,7 @@ If you encounter a problem or any unexpected results, please create an Issue on 
 
 # How to Cite this Code
 
-Please cite the Zenodo DOI (coming soon).
+Please cite the Zenodo DOI, which can be found on the GitHub page.
 
 
 # Technical Features

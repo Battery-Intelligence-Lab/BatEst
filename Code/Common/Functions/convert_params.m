@@ -24,7 +24,7 @@ new_fields = fieldnames(new_params);
 
 % Remove the estimation-specific fields
 clear_fields = {'c','nop','c_ind','fac','uncert','lb','ub','p','pdim', ...
-                'j','tt','uu','yy','fs'};
+                'j','tt','uu','yy','fs','RMSE_mV','RMSE_Ts'};
 params = rmfield(params,intersect(clear_fields,fields));
 new_params = rmfield(new_params,intersect(clear_fields,new_fields));
 

@@ -28,7 +28,7 @@ c0 = guess./fac;
 % Compile parameters into vector
 c = {@(t) c0(1); @(t) c0(2); @(t) c0(3); ... [1-3]
      Um; Vcut; Vrng; ... scaling [4-6]
-     OCV; ... sunfunctions [7]
+     OCV; ... subfunctions [7]
      Tm}; % keep the timescale Tm as the last entry [8]
 
 % Define the number of parameters (not including subfunctions or Tm)

@@ -50,8 +50,8 @@ Model.Noise = false; % true or false
 % Run simulation using updated parameters
 [pred_sol, params] = step3(Target,Model,params,0,est_sol);
 
-% Compute difference between data and simulation
-params = compute_RMSE(Target,params,true_sol,pred_sol);
+% Compare prediction and data
+params = step4(Target,params,true_sol,pred_sol);
 
 
 %% Save

@@ -4,9 +4,9 @@ function [Mass,est_dxdt,est_yeqn,params] = ...
 % to the estimation step by applying them directly to the model definition.
 
 % Unpack parameters
-[yy, rtau, etap, etan, UpFun, UnFun, DataType, c_ind] = ...
+[yy, rtau, etap, etan, UpFun, UnFun, c_ind] = ...
     struct2array(params, {'yy','rtau','etap','etan','UpFun','UnFun', ...
-                          'DataType','c_ind'});
+                          'c_ind'});
 
 % Consider only voltage
 if max(c_ind)<9
@@ -28,11 +28,7 @@ est_yeqn = @(t,x,u) select*est_yeqn(t,x,u,f);
 %% Estimation options
 
 % Set whether initial states are fixed or not
-if strcmp(DataType,'Relaxation')
-    params.fiX = {false,false,true,true};
-else
-    params.fiX = {true,true,true,true};
-end
+params.fiX = {true,true,true,true};
 
 
 end

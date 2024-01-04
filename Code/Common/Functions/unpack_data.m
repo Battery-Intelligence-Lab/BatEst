@@ -14,6 +14,8 @@ if ~any(Trng)
     [TtoK, CtoK, Trng] = deal(1); % no scaling
 end
 
+X_init = []; S_init = []; T_init = [];
+
 % Ensure that time series data is of type double
 column_names = data.Properties.VariableNames;
 for i = 1:length(column_names)
@@ -48,7 +50,7 @@ if tpoints(end)-tpoints(1) > 50*3600
            'error in unpack_data.m if you would like to continue.']);
 end
 
-% Optional down-sampling to reduce the number of datapoints
+% Optional down-sampling to reduce number of datapoints to target length
 target = 900;
 ds = max(floor(length(tpoints)/target),1);
 tpoints = tpoints(1:ds:end);
@@ -101,43 +103,45 @@ if verbose
     disp(['The total charge throughput is ' num2str(QT/Q) ' Q.']);
 end
 
-% Pass on initial voltage and temperature
+% Extract initial voltage and temperature
 i = max(1,start-1);
 V_init = data.Voltage_V(i);
 if verbose
     disp(['Starting voltage is ' num2str(V_init) ' V.']);
 end
+if ismember('Temperature_C', data.Properties.VariableNames)
+    T_init = data.Temperature_C(i);
+    if verbose
+        disp(['And surface temperature is ' num2str(T_init) ' C.']);
+    end
+end
+
+% Estimate model parameters and states
 if abs(data.Current_A(i))<0.02
     % Assume measurement starts at steady state
     [X_init, S_init] = deal(initial_SOC(params,V_init,0.5));
     if verbose
         disp(['The corresponding SOC estimate is ' num2str(X_init) '.']);
     end
-else
-    % Do not pass any SOC estimate
-    [X_init, S_init] = deal(NaN);
 end
-if length(X0)==1
-    sol.xsol(1,1) = X_init;
-else
-    sol.xsol(1,1:2) = [X_init, S_init];
-end
-T_init = data.Temperature_C(i);
-if verbose
-    disp(['And surface temperature is ' num2str(T_init) ' C.']);
-end
-
-% Pass on model parameters
-if contains(DataType,'charge') && ~contains(DataType,'OCV')
-    % Determine initial states from terminal voltage
-    relax_end = start+find((data(start+1:end,:).Cycle_Index==cycle) ...
-                        .*(data(start+1:end,:).Step_Index==step_end+1),1,'last');
+if contains(DataType,'CV charge') && ~contains(DataType,'OCV')
+    % Determine coulombic efficiency from change in equilibrium SOC
+    if any(cycle_step)
+        relax_end = start+find((data(start+1:end,:).Cycle_Index==cycle) ...
+                               .*(data(start+1:end,:).Step_Index==step_end+1),1,'last');
+    else
+        relax_end = finish;
+    end
     V_end = data.Voltage_V(relax_end);
     X_end = initial_SOC(params,V_end,0.9);
     X_input = X_end-X_init;
     sol.CE = X_input*Q/QT; % coulombic efficiency
     if verbose
         disp(['Coulombic efficiency of ' num2str(sol.CE)]);
+    end
+    if sol.CE < 0.95
+        disp('Coulombic efficiency < 95% ... discarding ...')
+        sol = rmfield(sol,'CE');
     end
 elseif strcmp(DataType,'Relaxation')
     % Estimate initial states from terminal voltage
@@ -152,6 +156,11 @@ elseif strcmp(DataType,'Relaxation')
         end
     end
 end
+
+% Rescale and pass on initial state estimates
+if any(X_init), sol.init.X = X_init; end
+if any(S_init), sol.init.S = S_init; end
+if any(T_init), sol.init.T = (T_init+CtoK-TtoK)/Trng; end
 
 
 end

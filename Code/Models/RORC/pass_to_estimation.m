@@ -19,7 +19,7 @@ est_yeqn = @(t,x,c) est_yeqn(t,x,c,f);
 %% Estimation options
 
 % Set whether initial states are fixed or not (if possible)
-params.fiX = {false,false};
+params.fiX = {true,false};
 
 
 end

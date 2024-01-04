@@ -8,6 +8,7 @@ function params = inform_params(params,ModelName,true_sol)
 
 % Add the type of data and load the uncertainties
 DataType = true_sol.DataType;
+y2_surface_temp = true_sol.y2_surface_temp;
 uncert = params.uncert;
 
 % Update the uncertainties

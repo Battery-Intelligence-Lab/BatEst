@@ -2,7 +2,7 @@ function params = compute_RMSE(params,true_sol,pred_sol)
 % A function to compute the root mean square error (RMSE) between the data
 % and the simulation and add these values to the params structure.
 
-verbose = params.verbose;
+[verbose, y2_surface_temp] = struct2array(params, {'verbose','y2_surface_temp'});
 
 % Compute RMSE
 [RMSE_mV, RMSE_Ts] = deal(0);
@@ -12,7 +12,7 @@ if length(true_sol.tsol)==length(pred_sol.tsol)
     if verbose
         disp(['The voltage RMSE is ' num2str(RMSE_mV) ' mV.']);
     end
-    if size(true_sol.ysol,2)==2 && size(pred_sol.ysol,2)==2
+    if any(y2_surface_temp==true) && size(pred_sol.ysol,2)>1
         RMSE_Ts = params.Trng* ...
             sqrt(sum((true_sol.ysol(:,2)-pred_sol.ysol(:,2)).^2) ...
                  /length(pred_sol.tsol)); % [C or K]

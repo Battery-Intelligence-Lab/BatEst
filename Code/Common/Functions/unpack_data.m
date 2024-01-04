@@ -61,10 +61,13 @@ if ismember('External_Temp_C', data.Properties.VariableNames) ...
     && ismember('Temperature_C', data.Properties.VariableNames)
     usol(:,2) = data.External_Temp_C(tpoints); % ambient
     ysol(:,2) = data.Temperature_C(tpoints); % surface
+    sol.y2_surface_temp = true; % there is surface temperature data
 elseif ismember('Temperature_C', data.Properties.VariableNames)
     usol(:,2) = data.Temperature_C(tpoints); % ambient
+    sol.y2_surface_temp = false; % no surface temperature data
 else
     usol(:,2) = Tamb-CtoK; % assume constant ambient
+    sol.y2_surface_temp = false; % no surface temperature data
 end
 
 % Make sure that the vectors are column vectors
@@ -78,7 +81,7 @@ end
 % Rescale and pack up vectors
 sol.tsol(:,1) = tsol;
 sol.ysol(:,1) = (ysol(it,1)-Vcut)/Vrng;
-if size(ysol,2)==2
+if sol.y2_surface_temp
     sol.ysol(:,2) = (ysol(it,2)+CtoK-TtoK)/Trng;
 end
 sol.usol(:,1) = usol(it,1)/Um;

@@ -14,15 +14,15 @@ uncert = params.uncert;
 if any(strcmp(ModelName,{'EHM','EHMT'}))
     if strcmp(DataType,'Relaxation')
         uncert(1:8) = [0; 1; 0; 0; 0; 0; 0; 0];
-    elseif strcmp(DataType,'CCCV charge')
-        uncert(1:8) = [0; 0; 0.1; 0; 0.5; 0; 0; 0.5];
+    elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
+        uncert(1:8) = [0; 0; 0.2; 1; 1; 0; 0; 1];
     elseif strcmp(DataType,'Cycling')
-        uncert(1:8) = [0.03; 0; 0.03; 0; 0.03; 0.03; 0.03; 0.03];
+        uncert(1:8) = [0.03; 0; 0.03; 0.03; 0.03; 0.03; 0.03; 0.03];
     end
 elseif strcmp(ModelName,'RORC')
     if strcmp(DataType,'Relaxation')
         uncert(1:4) = [0; 1; 0; 0];
-    elseif strcmp(DataType,'CCCV charge')
+    elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
         uncert(1:4) = [0; 0; 1; 1];
     elseif strcmp(DataType,'Cycling')
         uncert(1:4) = [0.03; 0; 0.03; 0.03];

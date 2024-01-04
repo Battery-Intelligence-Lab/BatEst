@@ -7,7 +7,7 @@ if nargin>2
     params.Test_Number = k;
 end
 
-% Remove function handles
+% Remove function handles and structure arrays
 params = convert_params(params,params);
 
 % Flip column vectors to row vectors

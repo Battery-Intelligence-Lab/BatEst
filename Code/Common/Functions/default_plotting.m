@@ -104,6 +104,11 @@ if any(bis)
     LineSpecB.DisplayName = 'Breakpoints';
 end
 
+% Compile the plotting parameters into the params structure
+vars = {'tlim','Xlim','ulim','Vlim','Tlim', ...
+        'LineSpec1','LineSpec2','LineSpec3','LineSpecB'};
+for i=1:length(vars), params.plotting.(vars{i}) = eval(vars{i}); end
+
 % Plot the control
 subplot(2,2,1); hold on;
 plot(time,usol(:,1),LineSpec1);

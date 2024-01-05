@@ -69,6 +69,7 @@ addpath(genpath(strcat('./Code/Models/',ModelName)));
 addpath(genpath(strcat('./Code/Methods/',Estimator)));
 
 % Define dimensionless model
+params.fit_derivative = false; % true or false
 [Model, params] = step0(ModelName,j,params);
 Model.Noise = false; % true or false
 

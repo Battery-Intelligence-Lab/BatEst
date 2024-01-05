@@ -6,13 +6,15 @@ function sol = unpack_data(data,params,j)
 % saved within the 'sol' structure. The vectors must be column vectors.
 
 % Unpack parameters
-[Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Q, cycle_step, DataType, ...
+[mn, Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Q, cycle_step, DataType, ...
     verbose] = ...
-    struct2array(params,{'Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
+    struct2array(params,{'mn','Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
                          'X0','Q','cycle_step','DataType','verbose'});
 if ~any(Trng)
     [TtoK, CtoK, Trng] = deal(1); % no scaling
 end
+
+X_init = []; S_init = []; T_init = [];
 
 % Ensure that time series data is of type double
 column_names = data.Properties.VariableNames;
@@ -41,19 +43,15 @@ end
 tpoints = start:finish;
 
 % Check length of dataset
-if tpoints(end)-tpoints(1) > 51*3600
-    error(['This dataset is over 51 hours long, please consider fitting ' ...
+if tpoints(end)-tpoints(1) > 50*3600
+    error(['This dataset is over 50 hours long, please consider fitting ' ...
            'a smaller subset of the data by updating the data selection ' ...
            'parameters in cell_parameters.m, or simply comment out this ' ...
            'error in unpack_data.m if you would like to continue.']);
 end
 
-% Optional down-sampling to reduce the number of datapoints
-if strcmp(DataType,'CCCV charge')
-    target = 1800;
-else
-    target = 900;
-end
+% Optional down-sampling to reduce number of datapoints to target length
+target = 900;
 ds = max(floor(length(tpoints)/target),1);
 tpoints = tpoints(1:ds:end);
 
@@ -65,11 +63,15 @@ if ismember('External_Temp_C', data.Properties.VariableNames) ...
     && ismember('Temperature_C', data.Properties.VariableNames)
     usol(:,2) = data.External_Temp_C(tpoints); % ambient
     ysol(:,2) = data.Temperature_C(tpoints); % surface
+    sol.y2_surface_temp = true; % there is surface temperature data
 elseif ismember('Temperature_C', data.Properties.VariableNames)
     usol(:,2) = data.Temperature_C(tpoints); % ambient
+    sol.y2_surface_temp = false; % no surface temperature data
 else
     usol(:,2) = Tamb-CtoK; % assume constant ambient
+    sol.y2_surface_temp = false; % no surface temperature data
 end
+ysol(:,end+1) = [0; (ysol(2:end,1)-ysol(1:end-1,1))./(tsol(2:end,1)-tsol(1:end-1,1))];
 
 % Make sure that the vectors are column vectors
 if size(tsol,2)>1 || size(usol,1)~=size(tsol,1) || size(ysol,1)~=size(tsol,1)
@@ -82,9 +84,10 @@ end
 % Rescale and pack up vectors
 sol.tsol(:,1) = tsol;
 sol.ysol(:,1) = (ysol(it,1)-Vcut)/Vrng;
-if size(ysol,2)==2
+if sol.y2_surface_temp
     sol.ysol(:,2) = (ysol(it,2)+CtoK-TtoK)/Trng;
 end
+sol.ysol(:,size(ysol,2)) = ysol(it,end)*mn/Vrng;
 sol.usol(:,1) = usol(it,1)/Um;
 if size(usol,2)==2
     sol.usol(:,2) = (usol(it,2)+CtoK-TtoK)/Trng;
@@ -102,37 +105,35 @@ if verbose
     disp(['The total charge throughput is ' num2str(QT/Q) ' Q.']);
 end
 
-% Pass on initial voltage and temperature
+% Extract initial voltage and temperature
 i = max(1,start-1);
 V_init = data.Voltage_V(i);
 if verbose
     disp(['Starting voltage is ' num2str(V_init) ' V.']);
 end
+if ismember('Temperature_C', data.Properties.VariableNames)
+    T_init = data.Temperature_C(i);
+    if verbose
+        disp(['And surface temperature is ' num2str(T_init) ' C.']);
+    end
+end
+
+% Estimate model parameters and states
 if abs(data.Current_A(i))<0.02
     % Assume measurement starts at steady state
     [X_init, S_init] = deal(initial_SOC(params,V_init,0.5));
     if verbose
         disp(['The corresponding SOC estimate is ' num2str(X_init) '.']);
     end
-else
-    % Do not pass any SOC estimate
-    [X_init, S_init] = deal(NaN);
 end
-if length(X0)==1
-    sol.xsol(1,1) = X_init;
-else
-    sol.xsol(1,1:2) = [X_init, S_init];
-end
-T_init = data.Temperature_C(i);
-if verbose
-    disp(['And surface temperature is ' num2str(T_init) ' C.']);
-end
-
-% Pass on model parameters
-if contains(DataType,'charge') && ~contains(DataType,'OCV')
-    % Determine initial states from terminal voltage
-    relax_end = start+find((data(start+1:end,:).Cycle_Index==cycle) ...
-                        .*(data(start+1:end,:).Step_Index==step_end+1),1,'last');
+if contains(DataType,'CV charge') && ~contains(DataType,'OCV')
+    % Determine coulombic efficiency from change in equilibrium SOC
+    if any(cycle_step)
+        relax_end = start+find((data(start+1:end,:).Cycle_Index==cycle) ...
+                               .*(data(start+1:end,:).Step_Index==step_end+1),1,'last');
+    else
+        relax_end = finish;
+    end
     V_end = data.Voltage_V(relax_end);
     X_end = initial_SOC(params,V_end,0.9);
     X_input = X_end-X_init;
@@ -140,24 +141,9 @@ if contains(DataType,'charge') && ~contains(DataType,'OCV')
     if verbose
         disp(['Coulombic efficiency of ' num2str(sol.CE)]);
     end
-    % Estimate the dynamic parameters as well
-    S_CC = 0.95; % assumption
-    Qn = Q/sol.CE;
-    I_CC = max(data.Current_A(start+1:finish));
-    CCend = start+find(data.Current_A(start+1:finish)>I_CC-0.002,1,'last');
-    X_CC = trapz(data.Test_Time_s(start:CCend), ...
-                 data.Current_A(start:CCend))/Qn;
-    T_CC = data.Test_Time_s(CCend)-data.Test_Time_s(start);
-    sol.b = 1/(1-((S_CC-X_CC)/T_CC-(S_CC-X_init)/(2*params.tau_ref)) ...
-                  *Qn/I_CC);
-    if verbose
-        disp(['Surface-particle ratio approx. ' num2str(sol.b)]);
-    end
-    In = 2*sqrt(S_CC*(1-S_CC))/I_CC ...
-         *sinh(params.Faraday/(2*params.Rg*(35+CtoK))*0.2);
-    sol.In_ref = In/exp(params.E_kn/params.Rg*(1/params.Tref-1/Tamb));
-    if verbose
-        disp(['Reference exchange current approx. ' num2str(sol.In_ref)]);
+    if sol.CE < 0.95
+        disp('Coulombic efficiency < 95% ... discarding ...')
+        sol = rmfield(sol,'CE');
     end
 elseif strcmp(DataType,'Relaxation')
     % Estimate initial states from terminal voltage
@@ -172,6 +158,11 @@ elseif strcmp(DataType,'Relaxation')
         end
     end
 end
+
+% Rescale and pass on initial state estimates
+if any(X_init), sol.init.X = X_init; end
+if any(S_init), sol.init.S = S_init; end
+if any(T_init), sol.init.T = (T_init+CtoK-TtoK)/Trng; end
 
 
 end

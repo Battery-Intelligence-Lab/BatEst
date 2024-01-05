@@ -8,21 +8,22 @@ function params = inform_params(params,ModelName,true_sol)
 
 % Add the type of data and load the uncertainties
 DataType = true_sol.DataType;
+y2_surface_temp = true_sol.y2_surface_temp;
 uncert = params.uncert;
 
 % Update the uncertainties
 if any(strcmp(ModelName,{'EHM','EHMT'}))
     if strcmp(DataType,'Relaxation')
         uncert(1:8) = [0; 1; 0; 0; 0; 0; 0; 0];
-    elseif strcmp(DataType,'CCCV charge')
-        uncert(1:8) = [0; 0; 0.1; 0; 0.5; 0; 0; 0.5];
+    elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
+        uncert(1:8) = [0; 0; 0.2; 1; 1; 0; 0; 1];
     elseif strcmp(DataType,'Cycling')
-        uncert(1:8) = [0.03; 0; 0.03; 0; 0.03; 0.03; 0.03; 0.03];
+        uncert(1:8) = [0.03; 0; 0.03; 0.03; 0.03; 0.03; 0.03; 0.03];
     end
 elseif strcmp(ModelName,'RORC')
     if strcmp(DataType,'Relaxation')
         uncert(1:4) = [0; 1; 0; 0];
-    elseif strcmp(DataType,'CCCV charge')
+    elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
         uncert(1:4) = [0; 0; 1; 1];
     elseif strcmp(DataType,'Cycling')
         uncert(1:4) = [0.03; 0; 0.03; 0.03];

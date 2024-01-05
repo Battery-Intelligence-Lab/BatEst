@@ -13,9 +13,10 @@ function [Model, params] = set_model(ModelName,params,j)
 % the output y = [(V-Vcut)/Vrng].
 
 % Unpack parameters
-[Q, nu, miu, Um, Vrng, Vcut, OCV, Tm, S0] = ...
+[Q, nu, miu, Um, Vrng, Vcut, OCV, Tm, S0, mn, fit_derivative] = ...
     struct2array(params, {'Q','nu','miu',...
-                          'Um','Vrng','Vcut','OCV','Tm','S0'});
+                          'Um','Vrng','Vcut','OCV','Tm','S0', ...
+                          'mn','fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
 guess = [1/Q; nu; miu];
@@ -40,14 +41,24 @@ f = @(c,i,t) feval(c{i},t)*fac(i);
 % Define the state derivatives
 dxdt = @(t,x,y,u,c) [f(c,1,t)*c{4}*u(1,:)]*c{8};
 
+% Set the initial states
+params.X0 = [S0];
+
 % Define the output equation
-yeqn = @(t,x,u,c) (c{7}(x(1,:),f(c,2,t),f(c,3,t))-c{5})/c{6};
+out = @(t,x,u,c) (c{7}(x(1,:),f(c,2,t),f(c,3,t))-c{5})/c{6};
 
 % Define the mass matrix
 Mass = diag([1; 0]);
 
-% Set the initial states
-params.X0 = [S0];
+if any(fit_derivative==true)
+    % Add the voltage derivative as an output
+    delta = 1e-4;
+    dVdx = @(t,x,u,c) (out(t,x+delta,u,c)-out(t,x-delta,u,c))/(2*delta);
+    yeqn = @(t,x,u,c) [out(t,x,u,c); dVdx(t,x,u,c).*dxdt(t,x,[],u,c)*mn/c{8}];
+    Mass(end+1,end+1) = 0; % extend the mass matrix
+else
+    yeqn = out;
+end
 
 % Pack up the model
 Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);

@@ -5,10 +5,10 @@ function params = default_plotting(sol,params)
 [tsol, xsol, ysol, usol, Type, bts, bis] = ...
     struct2array(sol, {'tsol','xsol','ysol','usol','Type','bts','bis'});
 [Um, Vcut, Vrng, Trng, TtoK, CtoK, mn, Crate, fs, OCV, UnFun, UpFun, ...
-    nu, miu, Rf, Rs] = ...
+    nu, miu, Rf, Rs, y2_surface_temp] = ...
     struct2array(params, {'Um','Vcut','Vrng','Trng','TtoK','CtoK', ...
                           'mn','Crate','fs','OCV','UnFun','UpFun', ...
-                          'nu','miu','Rf','Rs'});
+                          'nu','miu','Rf','Rs','y2_surface_temp'});
 
 % Rescale the variables
 time = tsol/mn; % time period (min)
@@ -104,6 +104,11 @@ if any(bis)
     LineSpecB.DisplayName = 'Breakpoints';
 end
 
+% Compile the plotting parameters into the params structure
+vars = {'tlim','Xlim','ulim','Vlim','Tlim', ...
+        'LineSpec1','LineSpec2','LineSpec3','LineSpecB'};
+for i=1:length(vars), params.plotting.(vars{i}) = eval(vars{i}); end
+
 % Plot the control
 subplot(2,2,1); hold on;
 plot(time,usol(:,1),LineSpec1);
@@ -153,7 +158,7 @@ if size(ysol,2)>1 || size(xsol,2)>2
     plot(time,usol(:,2),LineSpec1,DisplayName=[Type ' Te']);
     plot(bts,usol(bis,2),LineSpecB);
     ylim(Tlim); ylabel('Te (deg C)');
-    if size(ysol,2)>1
+    if any(y2_surface_temp==true) && size(ysol,2)>1
         plot(time,ysol(:,2),LineSpec2,DisplayName=[Type ' Ts']);
         plot(bts,ysol(bis,2),LineSpecB);
         ylabel('Te, Ts (deg C)');

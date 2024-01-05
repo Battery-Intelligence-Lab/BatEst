@@ -17,16 +17,18 @@ function [Model, params] = set_model(ModelName,params,j)
 
 % Unpack parameters
 [Q, tau_ref, b, Ip_ref, In_ref, nu, miu, Rf, Cp, Cps, tauT, tauA, ...
-    rtau, etap, etan, UpFun, UnFun, Um, Vcut, Vrng, Trng, Tm, S0] = ...
+    rtau, etap, etan, UpFun, UnFun, Um, Vcut, Vrng, Trng, Tm, S0, ...
+    mn, fit_derivative] = ...
     struct2array(params, {'Q','tau_ref','b','Ip_ref','In_ref','nu', ...
                           'miu','Rf','Cp','Cps','tauT','tauA', ...
                           'rtau','etap','etan','UpFun','UnFun', ...
-                          'Um','Vcut','Vrng','Trng','Tm','S0'});
+                          'Um','Vcut','Vrng','Trng','Tm','S0', ...
+                          'mn','fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
 guess = [1/Q; 1/tau_ref; 1/b; 1/Ip_ref; 1/In_ref; nu; miu; Rf; ...
          1/Cp; Cp/Cps; 1/tauT; 1/tauA];
-uncert = [0.05; 0.1; 0.1; 0; 0.5; 0; 0; 0.5; 0; 0; 0; 0];
+uncert = [0.05; 0.2; 0.2; 1; 1; 0; 0; 1; 0; 0; 0; 0];
 
 % Set the rescaling factor and scale the initial guesses
 fac = 2*guess;
@@ -58,18 +60,32 @@ dxdt = @(t,x,y,u,c) [(f(c,1,t)*c{13}*u(1,:)); ...
                          -f(c,12,t)*(x(4,:)-u(2,:)))/c{16} ...
                      ]*c{22};
 
+% Set the initial states
+params.X0 = [S0; S0; 0; 0];
+
 % Define the output equation
-yeqn = @(t,x,u,c) [(... c{18}(x(3,:),x(1,:),u(1,:),f(c,4,t),f(c,6,t),f(c,7,t)) ...
+volt = @(t,x,u,c) (c{18}(x(3,:),x(1,:),u(1,:),f(c,4,t),f(c,6,t),f(c,7,t)) ...
                    -c{19}(x(3,:),x(2,:),u(1,:),f(c,5,t)) ...
                    +c{20}(x(1,:),f(c,6,t),f(c,7,t))-c{21}(x(2,:)) ...
-                   +f(c,8,t)*c{13}*u(1,:)-c{14})/c{15}; ...
-                   x(4,:)];
+                   +f(c,8,t)*c{13}*u(1,:)-c{14})/c{15};
+out = @(t,x,u,c) [volt(t,x,u,c); ...
+                  x(4,:)];
 
 % Define the mass matrix
 Mass = diag([1; 1; 1; 1; 0; 0]);
 
-% Set the initial states
-params.X0 = [S0; S0; 0; 0];
+if any(fit_derivative==true)
+    % Add the voltage derivative as an output
+    delta = 1e-4;
+    dVdx = @(t,x,u,c) [(volt(t,x+[delta;0;0;0],u,c)-volt(t,x-[delta;0;0;0],u,c))/(2*delta);
+                       (volt(t,x+[0;delta;0;0],u,c)-volt(t,x-[0;delta;0;0],u,c))/(2*delta);
+                       (volt(t,x+[0;0;delta;0],u,c)-volt(t,x-[0;0;delta;0],u,c))/(2*delta);
+                       (volt(t,x+[0;0;0;delta],u,c)-volt(t,x-[0;0;0;delta],u,c))/(2*delta)];
+    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*dxdt(t,x,volt(t,x,u,c),u,c),1)*mn/c{22}];
+    Mass(end+1,end+1) = 0; % extend the mass matrix
+else
+    yeqn = out;
+end
 
 % Pack up the model
 Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);

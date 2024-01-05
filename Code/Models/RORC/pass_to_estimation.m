@@ -4,10 +4,16 @@ function [Mass,est_dxdt,est_yeqn,params] = ...
 % to the estimation step by applying them directly to the model definition.
 
 % Unpack parameters
-[OCV, yy] = struct2array(params, {'OCV','yy'});
+[OCV, yy, fit_derivative] = struct2array(params, {'OCV','yy','fit_derivative'});
 
-% Consider only voltage
-params.yy = yy(:,1);
+% Select output data
+if any(fit_derivative==true)
+    % Consider voltage and voltage derivative
+    params.yy = yy(:,[1,end]);
+else
+    % Consider only voltage
+    params.yy = yy(:,1);
+end
 
 % Define the RHS
 Tm = 1;
@@ -19,7 +25,7 @@ est_yeqn = @(t,x,c) est_yeqn(t,x,c,f);
 %% Estimation options
 
 % Set whether initial states are fixed or not (if possible)
-params.fiX = {false,false};
+params.fiX = {true,false};
 
 
 end

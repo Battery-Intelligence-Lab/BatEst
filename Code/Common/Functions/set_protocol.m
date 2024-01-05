@@ -5,9 +5,8 @@ function params = set_protocol(params,sol)
 
 if nargin==1
     % Load parameters
-    [mn, hr, Crate, Um, Vcut, Vrng, CtoK, TtoK, Trng] = ...
-        struct2array(params, {'mn','hr','Crate','Um','Vcut','Vrng', ...
-                              'CtoK','TtoK','Trng'});
+    [Um, Vcut, Vrng, CtoK, TtoK, Trng] = ...
+        struct2array(params, {'Um','Vcut','Vrng','CtoK','TtoK','Trng'});
     
     % Manually define or load the protocol
     [tt, uu] = cell_protocol(params);

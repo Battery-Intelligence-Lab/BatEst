@@ -5,24 +5,26 @@ function params = set_initial_states(params,sol)
 % Unpack initial states
 X0 = params.X0;
 
-% Determine the initial SOC estimate
-if ~isfield(sol,'xsol')
+% Check and complete init structure
+if isfield(sol,'init')
+    init = sol.init;
+else
+    init = struct();
+end
+if ~isfield(init,'X')
     % Compute steady-state SOC from initial voltage
     [Vrng, Vcut] = struct2array(params, {'Vrng','Vcut'});
-    SOC = initial_SOC(params,Vrng*sol.ysol(1,1)+Vcut,0.5);
-    if length(X0)>1
-        SOC = [SOC, SOC];
-    end
-elseif isnan(sol.xsol(1,1))
-    % Do not overwrite input
-    SOC = [];
-else
-    % Take initial SOC (and CSC) from data
-    SOC = sol.xsol(1,1:min(length(X0),2));
+    init.X = initial_SOC(params,Vrng*sol.ysol(1,1)+Vcut,0.5);
+end
+if ~isfield(init,'S')
+    init.S = init.X;
+end
+if ~isfield(init,'T')
+    init.T = 0;
 end
 
 % Set initial states according to model
-X0 = update_states(params.X0,SOC,sol.ysol(1,:));
+X0 = update_states(X0,init);
 
 % Check that values lie with bounds
 if any(X0.*(1-X0)<0)

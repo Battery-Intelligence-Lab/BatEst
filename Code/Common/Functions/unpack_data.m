@@ -6,9 +6,9 @@ function sol = unpack_data(data,params,j)
 % saved within the 'sol' structure. The vectors must be column vectors.
 
 % Unpack parameters
-[Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Q, cycle_step, DataType, ...
+[mn, Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Q, cycle_step, DataType, ...
     verbose] = ...
-    struct2array(params,{'Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
+    struct2array(params,{'mn','Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
                          'X0','Q','cycle_step','DataType','verbose'});
 if ~any(Trng)
     [TtoK, CtoK, Trng] = deal(1); % no scaling
@@ -71,6 +71,7 @@ else
     usol(:,2) = Tamb-CtoK; % assume constant ambient
     sol.y2_surface_temp = false; % no surface temperature data
 end
+ysol(:,end+1) = [0; (ysol(2:end,1)-ysol(1:end-1,1))./(tsol(2:end,1)-tsol(1:end-1,1))];
 
 % Make sure that the vectors are column vectors
 if size(tsol,2)>1 || size(usol,1)~=size(tsol,1) || size(ysol,1)~=size(tsol,1)
@@ -86,6 +87,7 @@ sol.ysol(:,1) = (ysol(it,1)-Vcut)/Vrng;
 if sol.y2_surface_temp
     sol.ysol(:,2) = (ysol(it,2)+CtoK-TtoK)/Trng;
 end
+sol.ysol(:,size(ysol,2)) = ysol(it,end)*mn/Vrng;
 sol.usol(:,1) = usol(it,1)/Um;
 if size(usol,2)==2
     sol.usol(:,2) = (usol(it,2)+CtoK-TtoK)/Trng;

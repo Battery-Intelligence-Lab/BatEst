@@ -103,6 +103,7 @@ addpath(genpath(strcat('./Code/Methods/',Estimator)));
 addpath(genpath(strcat('./Data/Brussels')));
 
 % Define dimensionless model
+params.fit_derivative = true; % true or false
 [Model, params] = step0(ModelName,j,params);
 Model.Noise = false; % true or false
 
@@ -115,8 +116,8 @@ Model.Noise = false; % true or false
 % Run simulation using updated parameters
 [pred_sol, params] = step3(Target,Model,params,j,est_sol);
 
-% Compute difference between data and simulation
-params = compute_RMSE(Target,params,true_sol,pred_sol);
+% Compare prediction and data
+params = step4(Target,params,true_sol,pred_sol);
 
 
 %% Save

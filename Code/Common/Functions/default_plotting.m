@@ -21,7 +21,7 @@ if size(usol,2)>2
     usol(:,3) = usol(:,3)*Vrng+Vcut; % voltage (V)
 end
 ysol(:,1) = ysol(:,1)*Vrng+Vcut; % voltage (V)
-if size(ysol,2)>1
+if any(y2_surface_temp==true) && size(ysol,2)>1
     ysol(:,2) = ysol(:,2)*Trng+TtoK-CtoK; % temperature (deg. C)
 end
 if size(xsol,2)>2
@@ -52,7 +52,7 @@ else
     subplot(2,2,3); hold on;
     xlim(tlim); xlabel('Time (min)');
     ylim(Xlim);
-    if size(ysol,2)>1 || size(xsol,2)>2
+    if any(y2_surface_temp==true) && size(ysol,2)>1 || size(xsol,2)>2
         subplot(2,2,4); hold on;
         xlim(tlim); xlabel('Time (min)');
         ylim(Tlim);

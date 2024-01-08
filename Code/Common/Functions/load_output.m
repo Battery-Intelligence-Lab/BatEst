@@ -1,10 +1,14 @@
-function params = load_output(out)
+function params = load_output(out,j)
 % Load the parameter values from a previous run. The input is a table
 % containing a column variable for each parameter, with the last row
 % corresponding to the most recent run.
 
-% Extract the last row
-out = out(end,:);
+% Extract the j-th or last row
+if nargin==2
+    out = out(j,:);
+else
+    out = out(end,:);
+end
 
 % Sort the table columns alphabetically
 sortedNames = sort(out.Properties.VariableNames);

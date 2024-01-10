@@ -6,15 +6,19 @@ function params = set_initial_states(params,sol)
 X0 = params.X0;
 
 % Check and complete init structure
-if isfield(sol,'init')
+if nargin==2 && isfield(sol,'init')
     init = sol.init;
 else
     init = struct();
 end
 if ~isfield(init,'X')
-    % Compute steady-state SOC from initial voltage
-    [Vrng, Vcut] = struct2array(params, {'Vrng','Vcut'});
-    init.X = initial_SOC(params,Vrng*sol.ysol(1,1)+Vcut,0.5);
+    if isfield(params,'S0')
+        init.X = params.S0;
+    else
+        % Compute steady-state SOC from initial voltage
+        [Vrng, Vcut] = struct2array(params, {'Vrng','Vcut'});
+        init.X = initial_SOC(params,Vrng*sol.ysol(1,1)+Vcut,0.5);
+    end
 end
 if ~isfield(init,'S')
     init.S = init.X;

@@ -71,7 +71,11 @@ else
     usol(:,2) = Tamb-CtoK; % assume constant ambient
     sol.y2_surface_temp = false; % no surface temperature data
 end
-ysol(:,end+1) = [0; (ysol(2:end,1)-ysol(1:end-1,1))./(tsol(2:end,1)-tsol(1:end-1,1))];
+
+% Compute voltage derivative capped by a maximum expected gradient
+ind = find((tsol(2:end,1)-tsol(1:end-1,1)) > 1e-7);
+ysol(ind+1,end+1) = (ysol(ind+1,1)-ysol(ind,1))./(tsol(ind+1,1)-tsol(ind,1));
+ysol(:,end) = sign(ysol(:,end)).*min(0.005,abs(ysol(:,end)));
 
 % Make sure that the vectors are column vectors
 if size(tsol,2)>1 || size(usol,1)~=size(tsol,1) || size(ysol,1)~=size(tsol,1)

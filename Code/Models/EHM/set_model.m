@@ -71,7 +71,8 @@ else
 end
 
 % Pack up the model
-Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);
+Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn, ...
+               'y2_surface_temp',false);
 params.uncert = uncert; params.fac = fac; params.c0 = c0; params.c = c;
 
 end

@@ -20,7 +20,7 @@ usol(:,2) = usol(:,2)*Trng+TtoK-CtoK; % temperature (deg. C)
 usol(:,3) = usol(:,3)*Vrng+Vcut; % voltage (V)
 usol(:,4) = usol(:,4)*Um; % current derivative (A/s)
 ysol(:,1) = ysol(:,1)*Vrng+Vcut; % voltage (V)
-if y2_surface_temp
+if y2_surface_temp && size(ysol,2)>1
     ysol(:,2) = ysol(:,2)*Trng+TtoK-CtoK; % temperature (deg. C)
 end
 if fit_derivative
@@ -160,7 +160,7 @@ if size(ysol,2)>(1+sum(fit_derivative)) || size(xsol,2)>2
     plot(time,usol(:,2),LineSpec1,DisplayName=[Type ' Te']);
     plot(bts,usol(bis,2),LineSpecB);
     ylim(Tlim); ylabel('Te (deg C)');
-    if y2_surface_temp
+    if y2_surface_temp && size(ysol,2)>1
         plot(time,ysol(:,2),LineSpec2,DisplayName=[Type ' Ts']);
         plot(bts,ysol(bis,2),LineSpecB);
         ylabel('Te, Ts (deg C)');

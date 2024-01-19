@@ -124,8 +124,9 @@ end
 % Compute dVdt capped by maximum expected gradient, dIdt and dTdt
 ind = find(([tsol(2:end); tsol(end)+1]-[-1; tsol(1:end-1)]) > 1e-7);
 tdiff = @(t,y) (y(ind+2,1)-y(ind,1))./(t(ind+2,1)-t(ind,1));
-ysol(ind,2+y2_surface_temp) = tdiff([-1; tsol; tsol(end)+1],[ysol(1,1); ysol(:,1); ysol(end,1)]);
-ysol(:,2+y2_surface_temp) = sign(ysol(:,2)).*min(0.005,abs(ysol(:,2)))*mn; % V/min
+y3 = 2+y2_surface_temp;
+ysol(ind,y3) = tdiff([-1; tsol; tsol(end)+1],[ysol(1,1); ysol(:,1); ysol(end,1)]);
+ysol(:,y3) = sign(ysol(:,y3)).*min(0.005,abs(ysol(:,y3)))*mn; % V/min
 usol(ind,4) = tdiff([-1; tsol; tsol(end)+1],[0; usol(:,1); 0]); % A/s
 usol(ind,5) = tdiff([-1; tsol; tsol(end)+1],[ysol(1,2); ysol(:,2); ysol(end,2)]); % K/s
 
@@ -137,9 +138,9 @@ sol.tsol(:,1) = tsol;
 sol.ysol(:,1) = (ysol(it,1)-Vcut)/Vrng;
 sol.y2_surface_temp = y2_surface_temp;
 if y2_surface_temp
-    sol.ysol(:,2) = (ysol(it,3)+CtoK-TtoK)/Trng;
+    sol.ysol(:,2) = (ysol(it,2)+CtoK-TtoK)/Trng;
 end
-sol.ysol(:,2+y2_surface_temp) = ysol(it,2)/Vrng;
+sol.ysol(:,y3) = ysol(it,y3)/Vrng;
 sol.usol(:,1) = usol(it,1)/Um;
 sol.usol(:,2) = (usol(it,2)+CtoK-TtoK)/Trng;
 sol.usol(:,3) = sol.ysol(:,1);
@@ -166,8 +167,8 @@ if (contains(DataType,'CV charge') && ~contains(DataType,'OCV') ...
     if verbose
         disp(['Coulombic efficiency of ' num2str(CE)]);
     end
-    if CE < 0.8
-        disp('Coulombic efficiency < 90% ... discarding ...')
+    if CE < 0.95
+        disp('Coulombic efficiency < 95% ... discarding ...')
     elseif CE > 1
         disp('Coulombic efficiency > 100% ... discarding ...')
     else

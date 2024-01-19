@@ -10,6 +10,7 @@ end
 
 if any(strcmp(Target,{'Simulate','Plot','Compare'}))
     % Nothing to estimate
+    params.y2_surface_temp = Model.y2_surface_temp;
 else
     % Select unknown or set cost function
     [Mass, est_dxdt, est_yeqn, params] = ...

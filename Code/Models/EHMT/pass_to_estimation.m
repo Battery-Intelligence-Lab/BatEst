@@ -12,6 +12,7 @@ function [Mass,est_dxdt,est_yeqn,params] = ...
 if any(fit_derivative==true) && max(c_ind)<9
     % No thermal parameters, consider voltage and voltage derivative
     params.yy = yy(:,[1,end]);
+    params.y2_surface_temp = false;
     select = @(func) [[1,0,0]*func; [0,0,1]*func];
 elseif any(fit_derivative==true)
     % Consider voltage, surface temperature and voltage derivative
@@ -19,6 +20,7 @@ elseif any(fit_derivative==true)
 elseif max(c_ind)<9
     % No thermal parameters, consider voltage only
     params.yy = yy(:,1);
+    params.y2_surface_temp = false;
     select = @(func) [1,0]*func;
 else
     % Consider voltage and surface temperature data

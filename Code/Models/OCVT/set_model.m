@@ -17,11 +17,11 @@ function [Model, params] = set_model(ModelName,params,j)
 
 % Unpack parameters
 [Q, nu, miu, Cp, Cps, tauT, tauA, Um, Vcut, Vrng, Trng, ...
-    OCV, Tm, S0, mn, fit_derivative] = ...
+    OCV, Tm, S0, fit_derivative] = ...
     struct2array(params, {'Q','nu','miu','Cp','Cps','tauT','tauA' ...
                           'Um','Vcut','Vrng','Trng', ...
                           'OCV','Tm','S0' ...
-                          'mn','fit_derivative'});
+                          'fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
 guess = [1/Q; nu; miu; 1/Cp; Cp/Cps; 1/tauT; 1/tauA];
@@ -65,13 +65,15 @@ Mass = diag([1; 1; 1; 0; 0]);
 
 if any(fit_derivative==true)
     warning('The OCVT cannot fit the derivative: the voltage is an input.')
+    params.fit_derivative = false;
     yeqn = out;
 else
     yeqn = out;
 end
 
 % Pack up the model
-Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);
+Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn, ...
+               'y2_surface_temp',true);
 params.uncert = uncert; params.fac = fac; params.c0 = c0; params.c = c;
 
 end

@@ -12,7 +12,7 @@ if length(true_sol.tsol)==length(pred_sol.tsol)
     if verbose
         disp(['The voltage RMSE is ' num2str(RMSE_mV) ' mV.']);
     end
-    if any(y2_surface_temp==true) && size(pred_sol.ysol,2)>1
+    if any(y2_surface_temp) && size(pred_sol.ysol,2)>1
         RMSE_Ts = params.Trng* ...
             sqrt(sum((true_sol.ysol(:,2)-pred_sol.ysol(:,2)).^2) ...
                  /length(pred_sol.tsol)); % [C or K]

@@ -28,12 +28,12 @@ end
 
 if verbose && isstruct(sol)
     % Display the parameters
-    disp(['Qn = ' num2str(Qn/hr) '*hr; % negative electrode capacity (As)']);
-    disp(['nu = ' num2str(nu) ';       % negative-positive electrode capacity ratio (non-dim.)']);
-    disp(['miu = ' num2str(miu) ';     % cyclable lithium-positive electrode capacity ratio (non-dim.)']);
+    disp([pad(['Qn = ' num2str(Qn/hr) '*hr;'], 21) '% negative electrode capacity (As)']);
+    disp([pad(['nu = ' num2str(nu) ';'], 21)       '% negative/positive electrode capacity ratio (non-dim.)']);
+    disp([pad(['miu = ' num2str(miu) ';'], 21)     '% cyclable lithium/positive electrode capacity ratio (non-dim.)']);
     
     % Display initial states
-    disp(['S0 = ' num2str(S0) '; % initial SOC']);
+    disp([pad(['S0 = ' num2str(S0) ';'], 21)       '% initial SOC']);
 end
 
 

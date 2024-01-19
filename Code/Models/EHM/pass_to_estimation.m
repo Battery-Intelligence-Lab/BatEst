@@ -11,6 +11,7 @@ function [Mass,est_dxdt,est_yeqn,params] = ...
 if any(fit_derivative==true)
     % Consider voltage and voltage derivative
     params.yy = yy(:,[1,end]);
+    params.y2_surface_temp = false;
 else
     % Consider only voltage
     params.yy = yy(:,1);

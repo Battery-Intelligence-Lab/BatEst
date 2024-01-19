@@ -63,8 +63,9 @@ if any(fit_derivative==true)
     % Add the voltage derivative as an output
     delta = 1e-4;
     dVdx = @(t,x,u,c) [(out(t,x+[delta;0],u,c)-out(t,x-[delta;0],u,c))/(2*delta);
-                       (out(t,x+[0;delta],u,c)-out(t,x-[0;delta],u,c))/(2*delta)];
-    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*dxdt(t,x,[],u,c),1)*mn/c{16}];
+                       (out(t,x+[0;delta],u,c)-out(t,x-[0;delta],u,c))/(2*delta);
+                       (out(t,x,u+delta,c)-out(t,x,u-delta,c))/(2*delta)];
+    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*[dxdt(t,x,[],u,c)/c{16}; u(4,:)],1)*mn];
     Mass(end+1,end+1) = 0; % extend the mass matrix
 else
     yeqn = out;

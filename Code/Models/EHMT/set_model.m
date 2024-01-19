@@ -80,8 +80,10 @@ if any(fit_derivative==true)
     dVdx = @(t,x,u,c) [(volt(t,x+[delta;0;0;0],u,c)-volt(t,x-[delta;0;0;0],u,c))/(2*delta);
                        (volt(t,x+[0;delta;0;0],u,c)-volt(t,x-[0;delta;0;0],u,c))/(2*delta);
                        (volt(t,x+[0;0;delta;0],u,c)-volt(t,x-[0;0;delta;0],u,c))/(2*delta);
-                       (volt(t,x+[0;0;0;delta],u,c)-volt(t,x-[0;0;0;delta],u,c))/(2*delta)];
-    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*dxdt(t,x,volt(t,x,u,c),u,c),1)*mn/c{22}];
+                       (volt(t,x+[0;0;0;delta],u,c)-volt(t,x-[0;0;0;delta],u,c))/(2*delta);
+                       (volt(t,x,u+[delta;0;0;0;0],c)-volt(t,x,u-[delta;0;0;0;0],c))/(2*delta);
+                       (volt(t,x,u+[0;delta;0;0;0],c)-volt(t,x,u-[0;delta;0;0;0],c))/(2*delta)];
+    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*[dxdt(t,x,volt(t,x,u,c),u,c)/c{22}; u(4:5,:)],1)*mn];
     Mass(end+1,end+1) = 0; % extend the mass matrix
 else
     yeqn = out;

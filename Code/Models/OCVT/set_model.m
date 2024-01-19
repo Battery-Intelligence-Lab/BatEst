@@ -65,6 +65,7 @@ Mass = diag([1; 1; 1; 0; 0]);
 
 if any(fit_derivative==true)
     warning('The OCVT cannot fit the derivative: the voltage is an input.')
+    params.fit_derivative = false;
     yeqn = out;
 else
     yeqn = out;

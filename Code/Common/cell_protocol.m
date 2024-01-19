@@ -12,6 +12,8 @@ t_end = 30*mn; % time period (s)
 u1 = @(t) 0.5*Crate; % current (A)
 u2 = @(t) 25; % temperature (deg. C)
 u3 = @(t) 3.5+0.5*t/t_end; % voltage (V)
+u4 = @(t) 0; % current derivative (A/s) **must match u1(t)**
+u5 = @(t) 0; % temperature derivative (K/s) **must match u2(t)**
 
 % Compute the discrete time protocol
 nt = 100;
@@ -19,6 +21,8 @@ tt(1:nt,1) = linspace(0,t_end,nt)';
 uu(1:nt,1) = u1(tt);
 uu(1:nt,2) = u2(tt);
 uu(1:nt,3) = u3(tt);
+uu(1:nt,4) = u4(tt);
+uu(1:nt,5) = u5(tt);
 
 % Or, load the protocol from file
 %     load('Data/Examples/drive_cycle.parquet','time','current');

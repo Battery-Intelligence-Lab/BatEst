@@ -13,13 +13,13 @@ function [Model, params] = set_model(ModelName,params,j)
 % the output y = [(V-Vcut)/Vrng].
 
 % Unpack parameters
-[Q, nu, miu, Um, Vrng, Vcut, OCV, Tm, S0, mn, fit_derivative] = ...
-    struct2array(params, {'Q','nu','miu',...
+[Qn, nu, miu, Um, Vrng, Vcut, OCV, Tm, S0, mn, fit_derivative] = ...
+    struct2array(params, {'Qn','nu','miu',...
                           'Um','Vrng','Vcut','OCV','Tm','S0', ...
                           'mn','fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
-guess = [1/Q; nu; miu];
+guess = [1/Qn; nu; miu];
 uncert = [0.1; 0.1; 0.1];
 
 % Set the rescaling factor and scale the initial guesses
@@ -53,8 +53,9 @@ Mass = diag([1; 0]);
 if any(fit_derivative==true)
     % Add the voltage derivative as an output
     delta = 1e-4;
-    dVdx = @(t,x,u,c) (out(t,x+delta,u,c)-out(t,x-delta,u,c))/(2*delta);
-    yeqn = @(t,x,u,c) [out(t,x,u,c); dVdx(t,x,u,c).*dxdt(t,x,[],u,c)*mn/c{8}];
+    dVdx = @(t,x,u,c) [(out(t,x+delta,u,c)-out(t,x-delta,u,c))/(2*delta);
+                       (out(t,x,u+delta,c)-out(t,x,u-delta,c))/(2*delta)];
+    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*[dxdt(t,x,[],u,c)/c{8}; u(4,:)],1)*mn];
     Mass(end+1,end+1) = 0; % extend the mass matrix
 else
     yeqn = out;

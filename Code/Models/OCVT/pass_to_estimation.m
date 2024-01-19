@@ -12,7 +12,7 @@ if size(yy,2)==1
 end
 
 % Select output data
-params.yy = yy(:,1:end-1);
+params.yy = yy(:,1:2);
 
 % Define the RHS
 Tm = 1;

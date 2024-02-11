@@ -50,9 +50,9 @@ if plot_model
     figure; hold on;
     x = [0, logspace(-3,-0.3,100)];
     x = unique([x,1-x]);
-    plot(x,UpFun(x,1,1),'r:+','DisplayName','Positive electrode OCP');
+    plot(x,UpFun(x,-1,0),'r:+','DisplayName','Positive electrode OCP');
     plot(x,UnFun(x),'b:+','DisplayName','Negative electrode OCP');
-    xlabel('Electrode state of charge');
+    xlabel('State of lithiation');
     ylabel('Voltage (V)')
     legend('Location','best');
 end

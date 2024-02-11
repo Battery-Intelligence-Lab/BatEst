@@ -3,7 +3,7 @@ function [out, params] = ULB_main(Dataset,out,input_params)
 
 close all;
 reset_path;
-addpath(genpath(strcat('./Data/Brussels')));
+addpath(genpath(strcat('./Data/ULB')));
 
 % To create a Dataset use: Dataset = importParquet('XXX.csv');
 % Dataset = parquetread('Code/Common/Import/ExampleDataset.parquet');
@@ -66,7 +66,7 @@ if j==1
     % Fit the stoichiometry bounds if not already done
     ModelName = 'OCV';
     try
-        out = parquetread(['Data/Brussels/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
+        out = parquetread(['Data/ULB/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
         params = load_output(out);
         continue;
     catch
@@ -83,7 +83,7 @@ elseif j==3
     % Fit the diffusion timescale
     ModelName = 'EHMT';
     try
-        out = parquetread(['Data/Brussels/out_' ModelName '0_' num2str(n) '_' num2str(k) '.parquet']);
+        out = parquetread(['Data/ULB/out_' ModelName '0_' num2str(n) '_' num2str(k) '.parquet']);
         params = load_output(out);
         continue;
     catch
@@ -100,7 +100,7 @@ fprintf('\nComputation started at %s\n', datetime("now"));
 reset_path;
 addpath(genpath(strcat('./Code/Models/',ModelName)));
 addpath(genpath(strcat('./Code/Methods/',Estimator)));
-addpath(genpath(strcat('./Data/Brussels')));
+addpath(genpath(strcat('./Data/ULB')));
 
 % Define dimensionless model
 params.fit_derivative = true; % true or false
@@ -129,11 +129,11 @@ out = tabulate_output(params,out,n,k);
 
 % Save output and current figure (true = overwrite by default)
 if j==3
-    save_output(out,['Data/Brussels/out_' ModelName '0_' num2str(n) '_' num2str(k)],true);
-    save_plot(gcf,['Data/Brussels/plot_' ModelName '0_' num2str(n) '_' num2str(k)],true);
+    save_output(out,['Data/ULB/out_' ModelName '0_' num2str(n) '_' num2str(k)],true);
+    save_plot(gcf,['Data/ULB/plot_' ModelName '0_' num2str(n) '_' num2str(k)],true);
 else
-    save_output(out,['Data/Brussels/out_' ModelName '_' num2str(n) '_' num2str(k)],true);
-    save_plot(gcf,['Data/Brussels/plot_' ModelName '_' num2str(n) '_' num2str(k)],true);
+    save_output(out,['Data/ULB/out_' ModelName '_' num2str(n) '_' num2str(k)],true);
+    save_plot(gcf,['Data/ULB/plot_' ModelName '_' num2str(n) '_' num2str(k)],true);
 end
 
 

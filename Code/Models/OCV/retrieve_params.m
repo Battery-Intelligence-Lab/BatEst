@@ -11,11 +11,12 @@ else
     c0 = sol(end,1:length(params.c0))';
 end
 p = num2cell(c0.*fac);
-[rQ, nu, miu] = deal(p{:});
+[rQn, nu, miu] = deal(p{:});
 
 % Update reciprocal parameters
-Q = 1/rQ;
-Qn = Q;
+Qn = 1/rQn;
+CE = 1;
+Q = Qn/CE;
 
 % Update initial states
 if isstruct(sol)

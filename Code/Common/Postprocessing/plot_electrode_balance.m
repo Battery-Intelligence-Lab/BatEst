@@ -33,4 +33,16 @@ plot([SOC_max, miu-nu*SOC_max], [UnFun(SOC_max), UpFun(SOC_max,nu,miu)], ...
 plot([SOC_min, miu-nu*SOC_min], [UnFun(SOC_min), UpFun(SOC_min,nu,miu)], ...
     'o--','LineWidth',linwid, 'Color',sky_blue, 'DisplayName','Discharge limit');
 
+% Plot alternative view
+figure; hold on;
+plot((miu-x)/nu,UpFun(x,-1,0),'r-','LineWidth',linwid, 'DisplayName','Positive electrode OCP');
+plot(x,UnFun(x),'b-','LineWidth',linwid, 'DisplayName','Negative electrode OCP');
+X = x*(SOC_max-SOC_min)+SOC_min;
+plot(X,UpFun(X,nu,miu)-UnFun(X),'k-','LineWidth',linwid, 'DisplayName','Full cell OCV');
+plot(SOC_min*[1,1],ylim,'Color',sky_blue, 'HandleVisibility','off');
+plot(SOC_max*[1,1],ylim,'Color',green, 'HandleVisibility','off');
+xlabel('Negative electrode state of charge');
+ylabel('Voltage (V)')
+legend('Location','best');
+
 end

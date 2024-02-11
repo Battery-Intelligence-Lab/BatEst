@@ -18,7 +18,8 @@ if any(strcmp(ModelName,{'EHM','EHMT'}))
     elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
         uncert(1:8) = [0; 0; 0.2; 1; 1; 0; 0; 1];
     elseif strcmp(DataType,'Cycling')
-        uncert(1:8) = [0.03; 0; 0.03; 0.03; 0.03; 0.03; 0.03; 0.03];
+        uncert(1:8) = [0.1; 0; 0; 0; 1; 0; 0; 1];
+                    % [1/Q; 1/tau; 1/b; 1/Ip; 1/In; nu; miu; Rf];
     end
 elseif strcmp(ModelName,'RORC')
     if strcmp(DataType,'Relaxation')

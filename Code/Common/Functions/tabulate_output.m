@@ -10,10 +10,12 @@ end
 % Remove function handles and structure arrays
 params = convert_params(params,params);
 
-% Flip column vectors to row vectors
+% Remove empty, flip column vectors to row vectors and unpack arrays
 fields = fieldnames(params);
 for i = 1:length(fields)
-    if isnumeric(params.(fields{i}))
+    if isempty(params.(fields{i}))
+        params = rmfield(params,fields{i});
+    elseif isnumeric(params.(fields{i}))
         params.(fields{i}) = params.(fields{i})';
     elseif iscell(params.(fields{i}))
         if ischar(params.(fields{i}){1})

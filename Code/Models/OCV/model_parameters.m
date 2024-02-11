@@ -12,9 +12,6 @@ Qn = 3.4*hr;         % negative electrode capacity (As)
 nu = 0.79;           % negative/positive electrode capacity ratio (non-dim.)
 miu = 0.87;          % cyclable lithium/positive electrode capacity ratio (non-dim.)
 
-% Update capacity
-Q = Qn;              % cell capacity (As)
-
 
 %% Compile all parameters into the params structure
 vars = setdiff(who,{'params','vars'});

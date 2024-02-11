@@ -16,7 +16,9 @@ BatEst can be used to parameterise low-order battery models from time-series dat
 
 Requirements:
 - Matlab (version R2023a)
+- Optimization Toolbox (version 9.5)
 - System Identification Toolbox (version 10.1)
+- Signal Processing Toolbox (version 9.2)
 
 This code was first created at the University of Oxford in 2022. See [AUTHORS](AUTHORS.md) for a list of contributors and [LICENSE](LICENSE) for the conditions of use.
 

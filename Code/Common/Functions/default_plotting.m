@@ -5,12 +5,12 @@ function params = default_plotting(sol,params)
 [tsol, xsol, ysol, usol, Type, bts, bis] = ...
     struct2array(sol, {'tsol','xsol','ysol','usol','Type','bts','bis'});
 [Um, Vcut, Vrng, Trng, TtoK, CtoK, mn, Crate, fs, OCV, UnFun, UpFun, ...
-    nu, miu, Rf, Rs, y2_surface_temp, fit_derivative] = ...
+    nu, miu, Rf, Rs, fit_derivative] = ...
     struct2array(params, {'Um','Vcut','Vrng','Trng','TtoK','CtoK', ...
                           'mn','Crate','fs','OCV','UnFun','UpFun', ...
-                          'nu','miu','Rf','Rs','y2_surface_temp', ...
-                          'fit_derivative'});
-y2_surface_temp = any(y2_surface_temp); fit_derivative = any(fit_derivative);
+                          'nu','miu','Rf','Rs','fit_derivative'});
+fit_derivative = any(fit_derivative);
+y2_surface_temp = size(sol.ysol,2)>1+fit_derivative;
 
 % Rescale the variables
 time = tsol/mn; % time period (min)
@@ -18,16 +18,19 @@ bts = bts/mn; % breakpoint times (min)
 usol(:,1) = usol(:,1)*Um; % current (A)
 usol(:,2) = usol(:,2)*Trng+TtoK-CtoK; % external temperature (deg. C)
 usol(:,3) = usol(:,3)*Vrng+Vcut; % voltage (V)
-usol(:,4) = usol(:,4)*Um; % current derivative (A/s)
 ysol(:,1) = ysol(:,1)*Vrng+Vcut; % voltage (V)
-if y2_surface_temp && size(ysol,2)>1
+if y2_surface_temp
     ysol(:,2) = ysol(:,2)*Trng+TtoK-CtoK; % surface temperature (deg. C)
+else
+    ysol = [ysol(:,1), NaN(size(ysol(:,1))), ysol(:,2:end)];
 end
 if fit_derivative
-    ysol(:,end) = ysol(:,end)*Vrng; % voltage derivative (V/min)
+    ysol(:,3) = ysol(:,3)*Vrng; % voltage derivative (V/min)
+    usol(:,4) = usol(:,4)*Um; % current derivative (A/s)
+    usol(:,5) = usol(:,5)*Trng; % external temperature derivative (K/s)
 end
-if size(xsol,2)>2
-    xsol(:,end-1:end) = xsol(:,end-1:end)*Trng+TtoK-CtoK; % core temp. (deg. C)
+if size(xsol,2)>3
+    xsol(:,3) = xsol(:,3)*Trng+TtoK-CtoK; % core temperature (deg. C)
 end
 
 % Set axis limits
@@ -54,7 +57,7 @@ else
     subplot(2,2,3); hold on;
     xlim(tlim); xlabel('Time (min)');
     ylim(Xlim);
-    if y2_surface_temp && size(ysol,2)>1 || size(xsol,2)>2
+    if y2_surface_temp
         subplot(2,2,4); hold on;
         xlim(tlim); xlabel('Time (min)');
         ylim(Tlim);
@@ -135,12 +138,13 @@ if any(strcmp(Type,{'Prediction','True'})) && sum(isnan(xsol),'all')==0
     elseif any(Rf)
         plot(time,OCVx+Rf*usol(:,1),LineSpec3,DisplayName=[Type ' OCV+RfI']);
     end
-    plot(time,OCVx,LineSpec2,DisplayName=[Type ' OCV']);
+    if size(xsol,2)>1
+        plot(time,OCVx,LineSpec2,DisplayName=[Type ' OCV']);
+    end
 end
 
 % Add legend
-lg = legend;
-lg.Location = 'Best';
+legend(Location='Best');
 
 % Plot the states of charge
 subplot(2,2,3); hold on;
@@ -155,21 +159,24 @@ else
 end
 
 % Plot the temperature
-if size(ysol,2)>(1+sum(fit_derivative)) || size(xsol,2)>2
+if size(usol,2)>1
     subplot(2,2,4); hold on;
     plot(time,usol(:,2),LineSpec1,DisplayName=[Type ' Te']);
     plot(bts,usol(bis,2),LineSpecB);
     ylim(Tlim); ylabel('Te (deg C)');
-    if y2_surface_temp && size(ysol,2)>1
-        plot(time,ysol(:,2),LineSpec2,DisplayName=[Type ' Ts']);
-        plot(bts,ysol(bis,2),LineSpecB);
-        ylabel('Te, Ts (deg C)');
-    end
-    if size(xsol,2)>2
-        plot(time,xsol(:,end-1),LineSpec3,DisplayName=[Type ' Tc']);
-        plot(bts,xsol(bis,end-1),LineSpecB);
-        ylabel('Te, Ts, Tc (deg C)');
-    end
+    legend(Location='Best');
+end
+if y2_surface_temp
+    subplot(2,2,4); hold on;
+    plot(time,ysol(:,2),LineSpec2,DisplayName=[Type ' Ts']);
+    plot(bts,ysol(bis,2),LineSpecB);
+    ylabel('Te, Ts (deg C)');
+end
+if size(xsol,2)>3 && sum(~isnan(xsol(:,3)))>0
+    subplot(2,2,4); hold on;
+    plot(time,xsol(:,3),LineSpec3,DisplayName=[Type ' Tc']);
+    plot(bts,xsol(bis,3),LineSpecB);
+    ylabel('Te, Ts, Tc (deg C)');
 end
 
 drawnow;

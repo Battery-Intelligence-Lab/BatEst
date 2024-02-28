@@ -16,18 +16,18 @@ y2_surface_temp = any(y2_surface_temp); fit_derivative = any(fit_derivative);
 time = tsol/mn; % time period (min)
 bts = bts/mn; % breakpoint times (min)
 usol(:,1) = usol(:,1)*Um; % current (A)
-usol(:,2) = usol(:,2)*Trng+TtoK-CtoK; % temperature (deg. C)
+usol(:,2) = usol(:,2)*Trng+TtoK-CtoK; % external temperature (deg. C)
 usol(:,3) = usol(:,3)*Vrng+Vcut; % voltage (V)
 usol(:,4) = usol(:,4)*Um; % current derivative (A/s)
 ysol(:,1) = ysol(:,1)*Vrng+Vcut; % voltage (V)
 if y2_surface_temp && size(ysol,2)>1
-    ysol(:,2) = ysol(:,2)*Trng+TtoK-CtoK; % temperature (deg. C)
+    ysol(:,2) = ysol(:,2)*Trng+TtoK-CtoK; % surface temperature (deg. C)
 end
 if fit_derivative
     ysol(:,end) = ysol(:,end)*Vrng; % voltage derivative (V/min)
 end
 if size(xsol,2)>2
-    xsol(:,end-1:end) = xsol(:,end-1:end)*Trng+TtoK-CtoK; % temperature (deg. C)
+    xsol(:,end-1:end) = xsol(:,end-1:end)*Trng+TtoK-CtoK; % core temp. (deg. C)
 end
 
 % Set axis limits

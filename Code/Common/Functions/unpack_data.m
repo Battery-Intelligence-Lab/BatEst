@@ -41,8 +41,8 @@ end
 tpoints = start:finish;
 
 % Check length of dataset
-if tpoints(end)-tpoints(1) > 50*3600
-    error(['This dataset is over 50 hours long, please consider fitting ' ...
+if tpoints(end)-tpoints(1) > 52*3600
+    error(['This dataset is over 52 hours long, please consider fitting ' ...
            'a smaller subset of the data by updating the data selection ' ...
            'parameters in cell_parameters.m, or simply comment out this ' ...
            'error in unpack_data.m if you would like to continue.']);
@@ -90,7 +90,8 @@ end
 %% Unpack sample data into solution structure
 
 % Optional down-sampling to reduce number of datapoints to target length
-if strcmp(DataType,'CCCV charge') || strcmp(DataType,'Cycling')
+if (contains(DataType,'charge') && ~contains(DataType,'OCV')) ...
+        || strcmp(DataType,'Cycling')
     target = 1800;
 else
     target = 900;
@@ -144,20 +145,25 @@ gaussFilter = gaussFilter / sum(gaussFilter); % normalize
 gaussLength = (length(gaussFilter)-1)/2;
 
 % Apply filter via convolution
-usol_ext = [repmat(data.Current_A(start),[gaussLength,1]); ...
+current_ext = [repmat(data.Current_A(start),[gaussLength,1]); ...
             data.Current_A(start:finish); ...
             repmat(data.Current_A(finish),[gaussLength,1])];
-filt_current = conv(usol_ext, gaussFilter, 'valid');
+filt_current = conv(current_ext, gaussFilter, 'valid');
 filt_current = [0; filt_current(1:ds:end); 0];
-if y2_surface_temp
-    ysol_ext = [repmat(data.Temperature_C(start),[gaussLength,1]); ...
-                data.Temperature_C(start:finish); ...
-                repmat(data.Temperature_C(finish),[gaussLength,1])];
-    filt_temp = conv(ysol_ext, gaussFilter, 'valid');
-    filt_temp = [filt_temp(1); filt_temp(1:ds:end); filt_temp(end)];
+if ismember('External_Temp_C', data.Properties.VariableNames) ...
+    && ismember('Temperature_C', data.Properties.VariableNames)
+    ambtemp_ext = [repmat(data.External_Temp_C(start),[gaussLength,1]); ...
+            data.External_Temp_C(start:finish); ...
+            repmat(data.External_Temp_C(finish),[gaussLength,1])];
+elseif ismember('Temperature_C', data.Properties.VariableNames)
+    ambtemp_ext = [repmat(data.Temperature_C(start),[gaussLength,1]); ...
+            data.Temperature_C(start:finish); ...
+            repmat(data.Temperature_C(finish),[gaussLength,1])];
 else
-    filt_temp = 0*filt_current;
+    ambtemp_ext = (Tamb-CtoK)*ones(finish-start+1+2*gaussLength);
 end
+filt_temp = conv(ambtemp_ext, gaussFilter, 'valid');
+filt_temp = [filt_temp(1); filt_temp(1:ds:end); filt_temp(end)];
 filt_time = [data.Test_Time_s(start)-1; ...
              data.Test_Time_s(tpoints); ...
              data.Test_Time_s(finish)+1]-data.Test_Time_s(start);
@@ -192,21 +198,21 @@ if contains(DataType,'CV charge') && ~contains(DataType,'OCV')
     if verbose
         disp(['Coulombic efficiency of ' num2str(CE)]);
     end
-    if CE < 0.95
-        disp('Coulombic efficiency < 95% ... discarding ...')
-    elseif CE > 1
-        disp('Coulombic efficiency > 100% ... discarding ...')
-    else
+    if CE < 0.8
+        disp('Coulombic efficiency < 80% ... discarding ...')
+    elseif CE > 1.1
+        disp('Coulombic efficiency > 110% ... discarding ...')
+    elseif any(CE)
         sol.CE = CE;
     end
 end
 
-% Use the average temperature as reference
+% Use the average external temperature as the ambient temperature
 if strcmp(DataType,'Relaxation') ...
         && ismember('External_Temp_C', data.Properties.VariableNames)
-    sol.Tref = mean(data.External_Temp_C(tpoints))+CtoK;
+    sol.Tamb = mean(data.External_Temp_C(tpoints))+CtoK;
     if verbose
-        disp(['Reference temperature is ' num2str(sol.Tref) ' K']);
+        disp(['Average ambient temperature is ' num2str(sol.Tamb) ' K']);
     end
 end
 

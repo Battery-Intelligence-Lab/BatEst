@@ -9,15 +9,22 @@ function [Mass,est_dxdt,est_yeqn,params] = ...
                           'c_ind','fit_derivative'});
 
 % Select output data
-if any(fit_derivative==true) && max(c_ind)<9
+if strcmp(params.DataType,'Relaxation') || max(c_ind)>8
+    fit_thermal = true;
+else
+    fit_thermal = false;
+end
+if any(fit_derivative==true) && ~fit_thermal
     % No thermal parameters, consider voltage and voltage derivative
     params.yy = yy(:,[1,end]);
     params.y2_surface_temp = false;
     select = @(func) [[1,0,0]*func; [0,0,1]*func];
 elseif any(fit_derivative==true)
     % Consider voltage, surface temperature and voltage derivative
-    select = @(func) func;
-elseif max(c_ind)<9
+    weighting = 1;
+    params.yy(:,2) = weighting*yy(:,2);
+    select = @(func) [[1,0,0]*func; [0,weighting,0]*func; [0,0,1]*func];
+elseif ~fit_thermal
     % No thermal parameters, consider voltage only
     params.yy = yy(:,1);
     params.y2_surface_temp = false;
@@ -38,7 +45,10 @@ est_yeqn = @(t,x,u) select(est_yeqn(t,x,u,f));
 %% Estimation options
 
 % Set whether initial states are fixed or not
-params.fiX = {true,true,true,true};
-
+if fit_thermal
+    params.fiX = {true,true,false,true};
+else
+    params.fiX = {true,true,true,true};
+end
 
 end

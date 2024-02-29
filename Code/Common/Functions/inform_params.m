@@ -15,19 +15,17 @@ uncert = params.uncert;
 if any(strcmp(ModelName,{'EHM','EHMT'}))
     if strcmp(DataType,'Relaxation')
         uncert(1:8) = [0; 1; 0; 0; 0; 0; 0; 0];
-    elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
-        uncert(1:8) = [0; 0; 0.2; 1; 1; 0; 0; 1];
-    elseif strcmp(DataType,'Cycling')
-        uncert(1:8) = [0.1; 0; 0; 0; 1; 0; 0; 1];
+    elseif (contains(DataType,'charge') && ~contains(DataType,'OCV')) ...
+            || strcmp(DataType,'Cycling')
+        uncert(1:8) = [0.05; 0; 0; 1; 1; 0; 0; 1];
                     % [1/Q; 1/tau; 1/b; 1/Ip; 1/In; nu; miu; Rf];
     end
 elseif strcmp(ModelName,'RORC')
     if strcmp(DataType,'Relaxation')
         uncert(1:4) = [0; 1; 0; 0];
-    elseif contains(DataType,'charge') && ~contains(DataType,'OCV')
-        uncert(1:4) = [0; 0; 1; 1];
-    elseif strcmp(DataType,'Cycling')
-        uncert(1:4) = [0.03; 0; 0.03; 0.03];
+    elseif (contains(DataType,'charge') && ~contains(DataType,'OCV')) ...
+            || strcmp(DataType,'Cycling')
+        uncert(1:4) = [0.05; 0; 1; 1];
     end
 end
 
@@ -36,21 +34,17 @@ if isfield(true_sol,'CE') && isfield(params,'CE')
     CE = true_sol.CE;
     Q = params.Qn/CE;
     params = update(params,1,'rQ',1/Q);
-    % Fix the negative electrode capacity Qn
-    uncert(1) = 0;
 end
 
-% Update the reference temperature
-if isfield(true_sol,'Tref')
-    if isfield(true_sol,'tau')
-        % Update activated parameter values
-        [tau, Ip, In, E_Dsn, E_kp, E_kn, Rg] = ...
-            struct2array(params, {'tau','Ip','In','E_Dsn','E_kp','E_kn','Rg'});
-        tau = tau/exp(E_Dsn/Rg*(1/true_sol.Tref-1/params.Tref)); % diffusion time constant (s)
-        Ip = Ip*exp(E_kp/Rg*(1/true_sol.Tref-1/params.Tref)); % maximum exchange current (A)
-        In = In*exp(E_kn/Rg*(1/true_sol.Tref-1/params.Tref)); % maximum exchange current (A)
-    end
-    Tref = true_sol.Tref;
+% Update the ambient temperature
+if strcmp(ModelName,'EHM') && isfield(true_sol,'Tamb')
+    Tamb = true_sol.Tamb;
+    % Update activated parameter values
+    [tau, Ip, In, Tamb_old, E_Dsn, E_kp, E_kn, Rg] = ...
+        struct2array(params, {'tau','Ip','In','Tref','E_Dsn','E_kp','E_kn','Rg'});
+    tau = tau/exp(E_Dsn/Rg*(1/Tamb_old-1/Tamb)); % diffusion time constant (s)
+    Ip = Ip*exp(E_kp/Rg*(1/Tamb_old-1/Tamb)); % reference exchange current (A)
+    In = In*exp(E_kn/Rg*(1/Tamb_old-1/Tamb)); % reference exchange current (A)
 end
 
 % Update the negative electrode surface/particle volume ratio

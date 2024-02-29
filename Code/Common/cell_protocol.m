@@ -10,10 +10,10 @@ function [tt, uu] = cell_protocol(params)
 % Define the protocol
 t_end = 30*mn; % time period (s)
 u1 = @(t) 0.5*Crate; % current (A)
-u2 = @(t) 25; % temperature (deg. C)
+u2 = @(t) 25; % external temperature (deg. C)
 u3 = @(t) 3.5+0.5*t/t_end; % voltage (V)
 u4 = @(t) 0; % current derivative (A/s) **must match u1(t)**
-u5 = @(t) 0; % temperature derivative (K/s) **must match u2(t)**
+u5 = @(t) 0; % external temperature derivative (K/s) **must match u2(t)**
 
 % Compute the discrete time protocol
 nt = 100;

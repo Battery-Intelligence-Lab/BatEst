@@ -22,10 +22,14 @@ found_split = '';
 for i = 1:length(par_names)
     if endsWith(par_names{i},'_1')
         found_split = par_names{i}(1:end-2);
-        out.(found_split) = out.(par_names{i});
+        if ~isnumeric(out.(par_names{i})) || ~isnan(out.(par_names{i}))
+            out.(found_split) = out.(par_names{i});
+        end
         out = removevars(out,par_names{i});
     elseif ~isempty(found_split) && startsWith(par_names{i},[found_split '_'])
-        out.(found_split) = [out.(found_split), out.(par_names{i})];
+        if ~isnumeric(out.(par_names{i})) || ~isnan(out.(par_names{i}))
+            out.(found_split) = [out.(found_split), out.(par_names{i})];
+        end
         out = removevars(out,par_names{i});
     else
         found_split = '';

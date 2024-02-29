@@ -63,16 +63,15 @@ DataType = '';
 
 % Select subset of data
 % cycle_step = [1;5];
-if j==1
-    cycle_step = [1;3];
+if j(2)==3
+    cycle_step = j;
     DataType = 'Pseudo-OCV charge';
-elseif j==2 || j>3
-    cycle_step = [1;5]; % 1C CCCV charge
-    % cycle_step = [1;11]; % C/2 CCCV charge
-    DataType = 'CCCV charge';
-elseif j==3
-    cycle_step = [1;10];
+elseif any(j(2)==[9,10,11])
+    cycle_step = j;
     DataType = 'Relaxation';
+else
+    cycle_step = j;
+    DataType = 'CCCV charge';
 end
 % [j;6] for Campaign 003, [j;7;8] for Campaign 009,
 % [j,16,22], j=1:3, for pulse data, [1;11] for C/2 CCCV charge,

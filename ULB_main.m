@@ -16,6 +16,16 @@ if ~exist('out','var'), out = []; end
 % To generate a parameters structure, use: params = load_output(out);
 if ~exist('input_params','var'), input_params = []; end
 
+% Restart from an existing output
+if isempty(out)
+    n_restart = 1;
+    k_restart = 1;
+else
+    if isempty(input_params), params = load_output(out); end
+    n_restart = out.Cell_Number(end);
+    k_restart = out.Test_Number(end)+1;
+end
+
 
 %% Iterations
 % Load index of measurement data to access multiple files
@@ -33,23 +43,26 @@ index = parquetread([folder index_filename]);
 
 % Set the cell number(s)
 cell_num = [3,3.2,3.3,4,4.2,4.3,5,6,7,8,9,9.2,10,10.2,11,11.2,20,21,21.2,22];
-for n = cell_num
+for n = cell_num(cell_num>=n_restart)
 
-OCV_index = find(index.Cell_Number==single(n) & index.OCV_Test);
-Performance_index = find(index.Cell_Number==single(n) & index.Performance_Test);
-% Select only Performance tests that occur alongside an OCV test
-Performance_index = Performance_index([1,7:5:end]);
-file_index = [OCV_index, Performance_index(1:length(OCV_index))]';
-filenames = index.File_Name(file_index(:));
-subfolder = index.Folder_Name(file_index(:));
-for k = 1:length(filenames)/2
+% Find files and folders for this cell
+filenumbers = find(index.Cell_Number'==single(n));
+filenumber1 = filenumbers(1);
+for k = filenumbers(filenumbers>=k_restart)
 
-% Reset the parameters for each test
-params = input_params; out = [];
+% Reset the parameters for each cell
+if k==filenumber1, out = []; params = input_params; end
 
-% Set the section number(s) or number of repetitions
-rep_num = 1:4;
-for j = rep_num
+if k==149
+    warning('Skipping 149...');
+    continue;
+end
+
+foldername = char(index.Folder_Name(k));
+filename = char(index.File_Name(k));
+cycle = 1; take_one = true;
+
+while cycle < 12
 
 
 %% Setup
@@ -59,37 +72,55 @@ for j = rep_num
 % Estimator: choose from the available Methods (Fmincon, PEM)
 
 % Settings
-if j==1
-    Target = 'Parameter';
-    Estimator = 'PEM';
+Target = 'Parameter';
+Estimator = 'PEM';
 
-    % Fit the stoichiometry bounds if not already done
+if index.OCV_Test(k)==true
+    % Fit the pseudo OCV
+    j = [1;3]; % cycle_step
     ModelName = 'OCV';
-    try
-        out = parquetread(['Data/ULB/out_' ModelName '_' num2str(n) '_' num2str(k) '.parquet']);
-        params = load_output(out);
-        continue;
-    catch
-        disp('Loading OCV charge data.')
-        Dataset = import_parquet([folder '/' subfolder{2*k-1} '/' filenames{2*k-1} '.parquet']);
+    disp('Loading OCV charge data.')
+    Dataset = import_parquet([folder '/' foldername '/' filename '.parquet']);
+
+% elseif index.Performance_Test(k)==true
+% Step 5 for 1C CCCV charge, 11 for C/2 CCCV charge and 10 for Relaxation
+%     % Fit the thermal parameters --- do not fit, just use mean values
+%     j = [1; 5]; % cycle_step
+%     ModelName = 'OCVT';
+%     disp('Loading performance data.')
+%     Dataset = import_parquet([folder '/' foldername '/' filename '.parquet']);
+%     continue;
+
+elseif index.Cycling_Test(k)==true && take_one
+    % Fit the diffusion timescale using rest after discharge
+    if any(n==[3,3.2,3.3,20])        % 1C CCCV
+        j = [cycle; 9];
+    elseif any(n==[4,4.2,4.3])       % 2C CCCV
+        j = [cycle; 10];
+    elseif any(n==[11,11.2,21,21.2]) % C/2 CCCV
+        j = [cycle; 10];
+    else                             % NCCV
+        j = [cycle; 11];
     end
-elseif j==2
-    % Fit the thermal parameters --- do not fit, just use mean values
-    ModelName = 'OCVT';
-    disp('Loading dynamic data.')
-    Dataset = import_parquet([folder '/' subfolder{2*k} '/' filenames{2*k} '.parquet']);
-    continue;
-elseif j==3
-    % Fit the diffusion timescale
     ModelName = 'EHMT';
-    try
-        out = parquetread(['Data/ULB/out_' ModelName '0_' num2str(n) '_' num2str(k) '.parquet']);
-        params = load_output(out);
-        continue;
-    catch
-    end
-elseif j>3
+    disp('Loading dynamic data.')
+    Dataset = import_parquet([folder '/' foldername '/' filename '.parquet']);
+
+elseif index.Cycling_Test(k)==true
     % Fit the dynamics and film resistance
+    if any(n==[3,3.2,3.3,20])        % 1C CCCV
+        j = [cycle; 6];
+    elseif any(n==[4,4.2,4.3])       % 2C CCCV
+        j = [cycle; 7];
+    elseif any(n==[11,11.2,21,21.2]) % C/2 CCCV
+        j = [cycle; 7];
+    else                             % NCCV
+        j = [cycle; 7; 8];
+    end
+
+else
+    cycle = 12;
+    continue;
 end
 
 
@@ -103,7 +134,7 @@ addpath(genpath(strcat('./Code/Methods/',Estimator)));
 addpath(genpath(strcat('./Data/ULB')));
 
 % Define dimensionless model
-params.fit_derivative = true; % true or false
+params.fit_derivative = false; % true or false
 [Model, params] = step0(ModelName,j,params);
 Model.Noise = false; % true or false
 
@@ -128,14 +159,26 @@ params = step4(Target,params,true_sol,pred_sol);
 out = tabulate_output(params,out,n,k);
 
 % Save output and current figure (true = overwrite by default)
-if j==3
-    save_output(out,['Data/ULB/out_' ModelName '0_' num2str(n) '_' num2str(k)],true);
-    save_plot(gcf,['Data/ULB/plot_' ModelName '0_' num2str(n) '_' num2str(k)],true);
-else
-    save_output(out,['Data/ULB/out_' ModelName '_' num2str(n) '_' num2str(k)],true);
-    save_plot(gcf,['Data/ULB/plot_' ModelName '_' num2str(n) '_' num2str(k)],true);
+if strcmp(Target,'Parameter')
+    if j==3
+        save_output(out,['Data/ULB/Run 5/Cell' num2str(n) '/out_' ModelName '0_' num2str(k) '_' num2str(cycle)],true);
+        save_plot(gcf,['Data/ULB/Run 5/Cell' num2str(n) '/plot_' ModelName '0_' num2str(k) '_' num2str(cycle)],true);
+    else
+        save_output(out,['Data/ULB/Run 5/Cell' num2str(n) '/out_' ModelName '_' num2str(k) '_' num2str(cycle)],true);
+        save_plot(gcf,['Data/ULB/Run 5/Cell' num2str(n) '/plot_' ModelName '_' num2str(k) '_' num2str(cycle)],true);
+    end
 end
 
+if index.OCV_Test(k)==true
+    cycle = 12;
+% elseif index.Performance_Test(k)==true
+elseif index.Cycling_Test(k)==true && take_one
+    take_one = false;
+elseif index.Cycling_Test(k)==true && cycle==11
+    take_one = true; cycle = 12;
+elseif index.Cycling_Test(k)==true
+    cycle = cycle+1;
+end
 
 end
 end

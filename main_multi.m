@@ -35,9 +35,6 @@ filenames = index.File_Name(file_index(:));
 subfolder = index.Folder_Name(file_index(:));
 for k = 1:length(filenames)
 
-% Reset the parameters for each test
-params = input_params;
-
 % Set the section number(s) or number of repetitions
 rep_num = 1:3;
 for j = rep_num
@@ -49,12 +46,12 @@ for j = rep_num
 % Target: choose from Simulate, Plot, Compare or Parameter
 % Estimator: choose from the available Methods (Fmincon, PEM)
 
+% Settings
 if j==1
-    % Settings
     ModelName = 'OCV';
     Target = 'Parameter';
     Estimator = 'PEM';
-    Dataset = import_parquet([subfolder{j} '/' filenames{j}]);
+    Dataset = import_parquet([subfolder{k} '/' filenames{k}]);
 elseif j==2
     ModelName = 'RORC';
 end

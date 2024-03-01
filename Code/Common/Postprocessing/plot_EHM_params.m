@@ -41,7 +41,7 @@ if any(set_numbers==0)
     xlim(xlimits);
     ax23 = subplot(3,1,3); hold on; title('Film resistance')
     xlabel('Test number');
-    ylabel('Resitance (Ohm)');
+    ylabel('Resistance (Ohm)');
     xlim(xlimits);
 
     % Generate figure for RMSE

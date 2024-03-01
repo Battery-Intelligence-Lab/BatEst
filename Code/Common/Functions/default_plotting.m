@@ -155,7 +155,7 @@ end
 
 % Plot the temperature
 if (size(usol,2)>1 && strcmp(Type,'True')) || y2_surface_temp ...
-        (size(xsol,2)>3 && sum(~isnan(xsol(:,3)))>0)
+        || (size(xsol,2)>3 && sum(~isnan(xsol(:,3)))>0)
     subplot(2,2,4); hold on;
     xlim(tlim); xlabel('Time (min)');
     ylim(Tlim); ylabel('Temperature (deg C)');

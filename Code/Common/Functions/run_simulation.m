@@ -42,9 +42,4 @@ sol.xsol = Y(:,1:length(X0));
 sol.ysol = Y(:,length(X0)+1:end);
 sol.usol = uu(1:length(tsol),:);
 
-% Update whether the output includes surface temperature
-if size(sol.ysol,2)>1+sum((params.fit_derivative))
-    params.y2_surface_temp = true;
-end
-
 end

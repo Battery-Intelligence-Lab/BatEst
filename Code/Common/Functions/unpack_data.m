@@ -188,8 +188,9 @@ sol.usol(:,5) = usol(it,5)/Trng;
 % Estimate the "coulombic efficiency" (CE)
 if contains(DataType,'CV charge') && ~contains(DataType,'OCV')
     % Include any relaxation period after subset of data
-    trailing_current = [data.Current_A(finish+1:end); 1];
-    relax_end = finish+find(trailing_current~=0,1,'first')-1;
+    % trailing_current = [data.Current_A(finish+1:end); 1];
+    % relax_end = finish+find(trailing_current~=0,1,'first')-1;
+    relax_end = finish+1*((finish+1)<length(data.Test_Time_s));
     V_end = data.Voltage_V(relax_end);
     X_end = initial_SOC(params,V_end,0.9);
     QT = trapz(data.Test_Time_s(i:relax_end),data.Current_A(i:relax_end));
@@ -205,25 +206,6 @@ if contains(DataType,'CV charge') && ~contains(DataType,'OCV')
         disp('Coulombic efficiency > 110% ... discarding ...')
     elseif any(CE)
         sol.CE = CE;
-    end
-    % Estimate the dynamic parameters as well
-    S_CC = 0.95; % assumption
-    Qn = Qn/sol.CE;
-    I_CC = max(data.Current_A(start+1:finish));
-    CCend = start+find(data.Current_A(start+1:finish)>I_CC-0.002,1,'last');
-    X_CC = trapz(data.Test_Time_s(start:CCend), ...
-                 data.Current_A(start:CCend))/Qn;
-    T_CC = data.Test_Time_s(CCend)-data.Test_Time_s(start);
-    sol.b = 1/(1-((S_CC-X_CC)/T_CC-(S_CC-X_init)/(2*params.tau_ref)) ...
-                  *Qn/I_CC);
-    if verbose
-        disp(['Surface-particle ratio approx. ' num2str(sol.b)]);
-    end
-    In = 2*sqrt(S_CC*(1-S_CC))/I_CC ...
-         *sinh(params.Faraday/(2*params.Rg*(35+CtoK))*0.2);
-    sol.In_ref = In/exp(params.E_kn/params.Rg*(1/params.Tref-1/Tamb));
-    if verbose
-        disp(['Reference exchange current approx. ' num2str(sol.In_ref)]);
     end
 end
 

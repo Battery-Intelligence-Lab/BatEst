@@ -48,17 +48,6 @@ if strcmp(ModelName,'EHM') && isfield(true_sol,'Tamb')
     In = In*exp(E_kn/Rg*(1/Tamb_old-1/Tamb)); % reference exchange current (A)
 end
 
-% Update the negative electrode surface/particle volume ratio
-if isfield(true_sol,'b') && isfield(params,'b')
-    b = true_sol.b;
-    params = update(params,3,'rb',1/b);
-end
-
-% Update the reference exchange current in the negative electrode
-if isfield(true_sol,'In_ref')
-    In_ref = true_sol.In_ref;
-end
-
 
 %% Compile all parameters into the params structure
 vars = setdiff(who,{'params','vars','ModelName','true_sol'});

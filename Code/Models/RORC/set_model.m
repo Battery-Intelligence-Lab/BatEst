@@ -15,9 +15,10 @@ function [Model, params] = set_model(ModelName,params,j)
 % the output y = [(V-cutV)/Vrng].
 
 % Unpack parameters
-[Q, tau1, C1, nu, miu, Um, Vcut, Vrng, Rs, OCV, Tm, S0] = ...
+[Q, tau1, C1, nu, miu, Um, Vcut, Vrng, Rs, OCV, Tm, S0, mn, fit_derivative] = ...
     struct2array(params, {'Q','tau1','C1','nu','miu',...
-                          'Um','Vcut','Vrng','Rs','OCV','Tm','S0'});
+                          'Um','Vcut','Vrng','Rs','OCV','Tm','S0', ...
+                          'mn','fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
 guess = [1/Q; 1/tau1; 1/(C1*Vrng); Rs; nu; miu];
@@ -44,18 +45,31 @@ f = @(c,i,t) feval(c{i},t)*fac(i);
 dxdt = @(t,x,y,u,c) [f(c,1,t)*c{7}*u(1,:); ...
                      -f(c,2,t)*x(2,:)+f(c,3,t)*c{7}*u(1,:)]*c{11};
 
+% Set the initial states
+params.X0 = [S0; 0];
+
 % Define the output equation
-yeqn = @(t,x,u,c) (c{10}(x(1,:),f(c,5,t),f(c,6,t))+c{9}*x(2,:) ...
+out = @(t,x,u,c) (c{10}(x(1,:),f(c,5,t),f(c,6,t))+c{9}*x(2,:) ...
                    +f(c,4,t)*c{7}*u(1,:)-c{8})/c{9};
 
 % Define the mass matrix
 Mass = diag([1; 1; 0]);
 
-% Set the initial states
-params.X0 = [S0; 0];
+if any(fit_derivative==true)
+    % Add the voltage derivative as an output
+    delta = 1e-4;
+    dVdx = @(t,x,u,c) [(out(t,x+[delta;0],u,c)-out(t,x-[delta;0],u,c))/(2*delta);
+                       (out(t,x+[0;delta],u,c)-out(t,x-[0;delta],u,c))/(2*delta);
+                       (out(t,x,u+delta,c)-out(t,x,u-delta,c))/(2*delta)];
+    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*[dxdt(t,x,[],u,c)/c{11}; u(4,:)],1)*mn];
+    Mass(end+1,end+1) = 0; % extend the mass matrix
+else
+    yeqn = out;
+end
 
 % Pack up the model
-Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);
+Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn, ...
+               'y2_surface_temp',false);
 params.uncert = uncert; params.fac = fac; params.c0 = c0; params.c = c;
 
 end

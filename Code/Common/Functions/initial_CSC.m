@@ -13,7 +13,10 @@ opts = optimoptions('fsolve','Display','off');
 if isa(OCV,'function_handle')
     CSC = SOCest;
 else
-    CSC = fsolve(@(x) UpFun(SOCest,nu,miu)-UnFun(x)-V,SOCest,opts);
+    [CSC, ~, exitflag] = fsolve(@(x) UpFun(SOCest,nu,miu)-UnFun(x)-V,SOCest,opts);
+    if exitflag<0
+        error(['Initial CSC not found: fsolve returned exitflag ' num2str(exitflag)]);
+    end
 end
 
 end

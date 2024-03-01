@@ -11,6 +11,9 @@ if size(yy,2)==1
     error('This model requires surface temperature data.')
 end
 
+% Select output data
+params.yy = yy(:,1:2);
+
 % Define the RHS
 Tm = 1;
 f = {OCV; Tm};

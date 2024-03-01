@@ -39,24 +39,24 @@ end
 
 if verbose && isstruct(sol)
     % Display new parameters
-    disp(['Qn = ' num2str(Qn/hr) '*hr;     % negative electrode capacity (As)']);
-    disp(['nu = ' num2str(nu) ';           % negative-positive electrode capacity ratio (non-dim.)']);
-    disp(['miu = ' num2str(miu) ';         % cyclable lithium-positive electrode capacity ratio (non-dim.)']);
-    disp(['Cp = ' num2str(Cp) ';           % heat capacity of the core (J K-1)']);
-    disp(['Cps = ' num2str(Cps) ';         % heat capacity of the surface (J K-1)']);
-    disp(['tauT = ' num2str(tauT) ';       % internal heat transfer timescale (s)']);
-    disp(['tauA = ' num2str(tauA) ';       % external heat transfer timescale (s)']);
-    disp(['tau_ref = ' num2str(tau_ref) '; % diffusion time constant (s)']);   
-    disp(['b = ' num2str(b) ';             % negative electrode surface/particle volume ratio (non-dim.)']);
-    disp(['Ip_ref = ' num2str(Ip_ref) ';   % reference exchange current in the positive electrode (A)']);
-    disp(['In_ref = ' num2str(In_ref) ';   % reference exchange current in the negative electrode (A)']);
-    disp(['Rf = ' num2str(Rf) ';           % film resistance (Ohm)']);
+    disp([pad(['Qn = ' num2str(Qn/hr) '*hr;'], 21)   '% negative electrode capacity (As)']);
+    disp([pad(['nu = ' num2str(nu) ';'], 21)         '% negative/positive electrode capacity ratio (non-dim.)']);
+    disp([pad(['miu = ' num2str(miu) ';'], 21)       '% cyclable lithium/positive electrode capacity ratio (non-dim.)']);
+    disp([pad(['Cp = ' num2str(Cp) ';'], 21)         '% heat capacity of the core (J K-1)']);
+    disp([pad(['Cps = ' num2str(Cps) ';'], 21)       '% heat capacity of the surface (J K-1)']);
+    disp([pad(['tauT = ' num2str(tauT) ';'], 21)     '% internal heat transfer timescale (s)']);
+    disp([pad(['tauA = ' num2str(tauA) ';'], 21)     '% external heat transfer timescale (s)']);
+    disp([pad(['tau_ref = ' num2str(tau_ref) ';'], 21) '% diffusion time constant (s)']);   
+    disp([pad(['b = ' num2str(b) ';'], 21)           '% negative electrode surface/particle volume ratio (non-dim.)']);
+    disp([pad(['Ip_ref = ' num2str(Ip_ref) ';'], 21) '% reference exchange current in the positive electrode (A)']);
+    disp([pad(['In_ref = ' num2str(In_ref) ';'], 21) '% reference exchange current in the negative electrode (A)']);
+    disp([pad(['Rf = ' num2str(Rf) ';'], 21)         '% film resistance (Ohm)']);
     disp( ' '); disp('% Update capacity');
-    disp(['CE = ' num2str(CE) ';           % coulombic efficiency (non-dim.)']);
+    disp([pad(['CE = ' num2str(CE) ';'], 21)         '% coulombic efficiency (non-dim.)']);
     
     % Display initial states
-    disp(['S0 = ' num2str(S0) '; % initial SOC']);
-    disp(['T0 = ' num2str(T0) '; % initial temperature']);
+    disp([pad(['S0 = ' num2str(S0) ';'], 21)         '% initial SOC']);
+    disp([pad(['T0 = ' num2str(T0) ';'], 21)         '% initial temperature']);
 end
 
 

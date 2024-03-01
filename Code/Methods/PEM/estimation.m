@@ -19,12 +19,16 @@ lb = lb(c_ind);
 ub = ub(c_ind);
 lgap = c0(c_ind)-lb;
 ugap = ub-c0(c_ind);
-flexible_bounds = true;
+flexible_bounds = true; % true or false
+
+% PEM requires equidistant time steps
+equitt = linspace(tt(1),tt(end),length(tt))';
+equiyn = interp1(tt,yn,equitt);
 
 % Create iddata object to store output, input and sample rate
-timestep = tt(2)-tt(1);
-data = iddata(yn,[],timestep);
-data.Tstart = tt(1);
+timestep = equitt(2)-equitt(1);
+data = iddata(equiyn,[],timestep);
+data.Tstart = equitt(1);
 data.TimeUnit = '';
 
 % Define an initial guess for the parameters
@@ -45,7 +49,7 @@ end
 
 % Configure the nonlinear grey-box model
 file_name = ['greybox' num2str(length(c_ind))];
-order = [size(yn,2) 0 length(X0)]; % number of outputs, inputs and states
+order = [size(equiyn,2) 0 length(X0)]; % number of outputs, inputs and states
 initial_states = X0; % warm start
 Ts = 0; % sample time of discrete model or 0 for a continuous time model
 init_sys = idnlgrey(file_name,order,parameters,initial_states,Ts, ...
@@ -57,7 +61,7 @@ setinit(init_sys,'Fixed',fiX);
 
 % Set up successful estimation conditions
 NearBound = Inf;
-MaxSteps = 10; step = 0;
+MaxSteps = 5; step = 0;
 while NearBound>0 && step<MaxSteps
 
 % Estimate the model parameters and initial states
@@ -117,9 +121,9 @@ end
 c0(c_ind) = ce;
 
 % Pack up solution
-sol.tsol = tt;
+sol.tsol = equitt;
 sol.xsol = X0';
-sol.usol = U(tt);
-sol.psol = ones(length(tt),1)*c0';
+sol.usol = U(equitt);
+sol.psol = ones(length(equitt),1)*c0';
 
 end

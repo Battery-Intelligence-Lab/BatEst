@@ -11,9 +11,12 @@ function SOC = initial_SOC(params,V,SOCest)
 % Estimate the equilibrium SOC corresponding to the given voltage
 opts = optimoptions('fsolve','Display','off');
 if isa(OCV,'function_handle')
-    SOC = fsolve(@(x) OCV(x,nu,miu)-V,SOCest,opts);
+    [SOC, ~, exitflag] = fsolve(@(x) OCV(x,nu,miu)-V,SOCest,opts);
 else
-    SOC = fsolve(@(x) UpFun(x,nu,miu)-UnFun(x)-V,SOCest,opts);
+    [SOC, ~, exitflag] = fsolve(@(x) UpFun(x,nu,miu)-UnFun(x)-V,SOCest,opts);
+end
+if exitflag<0
+    error(['Initial SOC not found: fsolve returned exitflag' num2str(exitflag)]);
 end
 
 end

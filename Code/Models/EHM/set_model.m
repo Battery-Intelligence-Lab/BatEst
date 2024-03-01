@@ -15,14 +15,15 @@ function [Model, params] = set_model(ModelName,params,j)
 
 % Unpack parameters
 [Q, tau, b, Ip, In, nu, miu, Rf, etap, etan, UpFun, UnFun, ...
-    Um, Vrng, Vcut, Tm, S0] = ...
+    Um, Vrng, Vcut, Tm, S0, mn, fit_derivative] = ...
     struct2array(params, {'Q','tau','b','Ip','In','nu','miu','Rf', ...
                           'etap','etan','UpFun','UnFun', ...
-                          'Um','Vrng','Vcut','Tm','S0'});
+                          'Um','Vrng','Vcut','Tm','S0', ...
+                          'mn','fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
 guess = [1/Q; 1/tau; 1/b; 1/Ip; 1/In; nu; miu; Rf];
-uncert = [0.05; 0.1; 0.1; 0; 0.5; 0; 0; 0.5];
+uncert = [0.05; 0.2; 0.2; 1; 1; 0; 0; 1];
 
 % Set the rescaling factor and scale the initial guesses
 fac = 2*guess;
@@ -46,8 +47,11 @@ dxdt = @(t,x,y,u,c) [(f(c,1,t)*c{9}*u(1,:)); ...
                      (f(c,2,t)*(x(1,:)-x(2,:))+f(c,1,t)*f(c,3,t)*c{9}*u(1,:)) ...
                      ]*c{16};
 
+% Set the initial states
+params.X0 = [S0; S0];
+
 % Define the output equation
-yeqn = @(t,x,u,c) (c{12}(x(1,:),u(1,:),f(c,4,t),f(c,6,t),f(c,7,t)) ...
+out = @(t,x,u,c) (c{12}(x(1,:),u(1,:),f(c,4,t),f(c,6,t),f(c,7,t)) ...
                   -c{13}(x(2,:),u(1,:),f(c,5,t)) ...
                   +c{14}(x(1,:),f(c,6,t),f(c,7,t))-c{15}(x(2,:)) ...
                   +f(c,8,t)*c{9}*u(1,:)-c{10})/c{11};
@@ -55,11 +59,21 @@ yeqn = @(t,x,u,c) (c{12}(x(1,:),u(1,:),f(c,4,t),f(c,6,t),f(c,7,t)) ...
 % Define the mass matrix
 Mass = diag([1; 1; 0]);
 
-% Set the initial states
-params.X0 = [S0; S0];
+if any(fit_derivative==true)
+    % Add the voltage derivative as an output
+    delta = 1e-4;
+    dVdx = @(t,x,u,c) [(out(t,x+[delta;0],u,c)-out(t,x-[delta;0],u,c))/(2*delta);
+                       (out(t,x+[0;delta],u,c)-out(t,x-[0;delta],u,c))/(2*delta);
+                       (out(t,x,u+delta,c)-out(t,x,u-delta,c))/(2*delta)];
+    yeqn = @(t,x,u,c) [out(t,x,u,c); sum(dVdx(t,x,u,c).*[dxdt(t,x,[],u,c)/c{16}; u(4,:)],1)*mn];
+    Mass(end+1,end+1) = 0; % extend the mass matrix
+else
+    yeqn = out;
+end
 
 % Pack up the model
-Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);
+Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn, ...
+               'y2_surface_temp',false);
 params.uncert = uncert; params.fac = fac; params.c0 = c0; params.c = c;
 
 end

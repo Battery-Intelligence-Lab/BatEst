@@ -5,9 +5,8 @@ function params = set_protocol(params,sol)
 
 if nargin==1
     % Load parameters
-    [mn, hr, Crate, Um, Vcut, Vrng, CtoK, TtoK, Trng] = ...
-        struct2array(params, {'mn','hr','Crate','Um','Vcut','Vrng', ...
-                              'CtoK','TtoK','Trng'});
+    [Um, Vcut, Vrng, CtoK, TtoK, Trng] = ...
+        struct2array(params, {'Um','Vcut','Vrng','CtoK','TtoK','Trng'});
     
     % Manually define or load the protocol
     [tt, uu] = cell_protocol(params);
@@ -16,6 +15,8 @@ if nargin==1
     uu(:,1) = uu(:,1)/Um;
     uu(:,2) = (uu(:,2)+CtoK-TtoK)/Trng;
     uu(:,3) = (uu(:,3)-Vcut)/Vrng;
+    uu(:,4) = uu(:,4)/Um;
+    uu(:,5) = uu(:,5)/Trng;
     
 
 elseif nargin==2
@@ -41,5 +42,7 @@ params.tt = tt; % time period (s)
 params.uu(:,1) = uu(:,1); % dimensionless current (between -1 and 1)
 params.uu(:,2) = uu(:,2); % dimensionless temperature (between 0 and 1)
 params.uu(:,3) = uu(:,3); % dimensionless voltage (between 0 and 1)
+params.uu(:,4) = uu(:,4); % dimensionless current derivative
+params.uu(:,5) = uu(:,5); % dimensionless temperature derivative
 
 end

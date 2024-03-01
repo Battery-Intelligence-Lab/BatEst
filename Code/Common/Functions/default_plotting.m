@@ -5,12 +5,12 @@ function params = default_plotting(sol,params)
 [tsol, xsol, ysol, usol, Type, bts, bis] = ...
     struct2array(sol, {'tsol','xsol','ysol','usol','Type','bts','bis'});
 [Um, Vcut, Vrng, Trng, TtoK, CtoK, mn, Crate, fs, OCV, UnFun, UpFun, ...
-    nu, miu, Rf, Rs, fit_derivative] = ...
+    nu, miu, Rf, Rs, y2_surface_temp, fit_derivative] = ...
     struct2array(params, {'Um','Vcut','Vrng','Trng','TtoK','CtoK', ...
                           'mn','Crate','fs','OCV','UnFun','UpFun', ...
-                          'nu','miu','Rf','Rs','fit_derivative'});
-fit_derivative = any(fit_derivative);
-y2_surface_temp = size(sol.ysol,2)>1+fit_derivative;
+                          'nu','miu','Rf','Rs','y2_surface_temp', ...
+                          'fit_derivative'});
+y2_surface_temp = any(y2_surface_temp); fit_derivative = any(fit_derivative);
 
 % Rescale the variables
 time = tsol/mn; % time period (min)
@@ -159,7 +159,7 @@ else
 end
 
 % Plot the temperature
-if size(usol,2)>1
+if size(usol,2)>1 && strcmp(Type,'True')
     subplot(2,2,4); hold on;
     plot(time,usol(:,2),LineSpec1,DisplayName=[Type ' Te']);
     plot(bts,usol(bis,2),LineSpecB);

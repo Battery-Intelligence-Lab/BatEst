@@ -6,10 +6,10 @@ function sol = unpack_data(data,params,j)
 % saved within the 'sol' structure. The vectors must be column vectors.
 
 % Unpack parameters
-[Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Q, cycle_step, DataType, ...
+[mn, Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Qn, cycle_step, DataType, ...
     verbose] = ...
-    struct2array(params,{'Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
-                         'X0','Q','cycle_step','DataType','verbose'});
+    struct2array(params,{'mn','Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
+                         'X0','Qn','cycle_step','DataType','verbose'});
 if ~any(Trng)
     [TtoK, CtoK, Trng] = deal(1); % no scaling
 end
@@ -41,15 +41,61 @@ end
 tpoints = start:finish;
 
 % Check length of dataset
-if tpoints(end)-tpoints(1) > 50*3600
-    error(['This dataset is over 50 hours long, please consider fitting ' ...
+if tpoints(end)-tpoints(1) > 52*3600
+    error(['This dataset is over 52 hours long, please consider fitting ' ...
            'a smaller subset of the data by updating the data selection ' ...
            'parameters in cell_parameters.m, or simply comment out this ' ...
            'error in unpack_data.m if you would like to continue.']);
 end
 
-% Optional down-sampling to reduce the number of datapoints
-target = 900;
+
+%% Compute initial values and throughtput
+
+% Preallocate initial states
+X_init = []; S_init = []; T_init = [];
+
+% Extract initial voltage and temperature
+i = max([1,find(data.Current_A(1:start-1)==0,1,'last')]);
+V_init = data.Voltage_V(i);
+if verbose
+    disp(['Starting voltage is ' num2str(V_init) ' V.']);
+end
+if ismember('Temperature_C', data.Properties.VariableNames)
+    T_init = data.Temperature_C(i);
+    if verbose
+        disp(['And surface temperature is ' num2str(T_init) ' C.']);
+    end
+end
+
+% Estimate initial states
+if strcmp(DataType,'Relaxation')
+    % Assume zero current and determine from terminal voltage
+    X_init = initial_SOC(params,data.Voltage_V(finish),0.03);
+    S_init = initial_CSC(params,data.Voltage_V(start),X_init);
+elseif abs(data.Current_A(i))<0.05
+    % Assume measurement starts at steady state
+    [X_init, S_init] = deal(initial_SOC(params,V_init,0.5));
+end
+if verbose && any(X_init)
+    disp(['The corresponding SOC estimate is ' num2str(X_init) '.']);
+end
+
+% Compute charge throughput
+QT = trapz(data.Test_Time_s(i:finish),data.Current_A(i:finish));
+if verbose
+    disp(['The total charge throughput is ' num2str(QT/Qn) ' Qn.']);
+end
+
+
+%% Unpack sample data into solution structure
+
+% Optional down-sampling to reduce number of datapoints to target length
+if (contains(DataType,'charge') && ~contains(DataType,'OCV')) ...
+        || strcmp(DataType,'Cycling')
+    target = 1800;
+else
+    target = 900;
+end
 ds = max(floor(length(tpoints)/target),1);
 tpoints = tpoints(1:ds:end);
 
@@ -61,10 +107,13 @@ if ismember('External_Temp_C', data.Properties.VariableNames) ...
     && ismember('Temperature_C', data.Properties.VariableNames)
     usol(:,2) = data.External_Temp_C(tpoints); % ambient
     ysol(:,2) = data.Temperature_C(tpoints); % surface
+    y2_surface_temp = true; % there is surface temperature data
 elseif ismember('Temperature_C', data.Properties.VariableNames)
     usol(:,2) = data.Temperature_C(tpoints); % ambient
+    y2_surface_temp = false; % no surface temperature data
 else
     usol(:,2) = Tamb-CtoK; % assume constant ambient
+    y2_surface_temp = false; % no surface temperature data
 end
 
 % Make sure that the vectors are column vectors
@@ -78,77 +127,99 @@ end
 % Rescale and pack up vectors
 sol.tsol(:,1) = tsol;
 sol.ysol(:,1) = (ysol(it,1)-Vcut)/Vrng;
-if size(ysol,2)==2
+sol.y2_surface_temp = y2_surface_temp;
+if y2_surface_temp
     sol.ysol(:,2) = (ysol(it,2)+CtoK-TtoK)/Trng;
 end
 sol.usol(:,1) = usol(it,1)/Um;
-if size(usol,2)==2
-    sol.usol(:,2) = (usol(it,2)+CtoK-TtoK)/Trng;
-    sol.usol(:,3) = sol.ysol(:,1);
-end
+sol.usol(:,2) = (usol(it,2)+CtoK-TtoK)/Trng;
+sol.usol(:,3) = sol.ysol(:,1);
 sol.xsol = NaN(length(it),length(X0));
 sol.DataType = DataType;
+
+% Filtering requires Signal Processing Toolbox
+% Set up Gaussian window filter for reducing noise before taking derivative
+sigma = 10; % pick sigma value for the gaussian (higher = more smoothing)
+gaussFilter = gausswin(6*sigma + 1)';
+gaussFilter = gaussFilter / sum(gaussFilter); % normalize
+gaussLength = (length(gaussFilter)-1)/2;
+
+% Apply filter via convolution
+current_ext = [repmat(data.Current_A(start),[gaussLength,1]); ...
+            data.Current_A(start:finish); ...
+            repmat(data.Current_A(finish),[gaussLength,1])];
+filt_current = conv(current_ext, gaussFilter, 'valid');
+filt_current = [0; filt_current(1:ds:end); 0];
+if ismember('External_Temp_C', data.Properties.VariableNames) ...
+    && ismember('Temperature_C', data.Properties.VariableNames)
+    ambtemp_ext = [repmat(data.External_Temp_C(start),[gaussLength,1]); ...
+            data.External_Temp_C(start:finish); ...
+            repmat(data.External_Temp_C(finish),[gaussLength,1])];
+elseif ismember('Temperature_C', data.Properties.VariableNames)
+    ambtemp_ext = [repmat(data.Temperature_C(start),[gaussLength,1]); ...
+            data.Temperature_C(start:finish); ...
+            repmat(data.Temperature_C(finish),[gaussLength,1])];
+else
+    ambtemp_ext = (Tamb-CtoK)*ones(finish-start+1+2*gaussLength);
+end
+filt_temp = conv(ambtemp_ext, gaussFilter, 'valid');
+filt_temp = [filt_temp(1); filt_temp(1:ds:end); filt_temp(end)];
+filt_time = [data.Test_Time_s(start)-1; ...
+             data.Test_Time_s(tpoints); ...
+             data.Test_Time_s(finish)+1]-data.Test_Time_s(start);
+
+% Compute dVdt capped by maximum expected gradient, dIdt and dTdt
+tdiff = @(t,y) (y(3:end,1)-y(1:end-2,1))./(t(3:end,1)-t(1:end-2,1));
+y3 = 2+y2_surface_temp;
+ysol(:,y3) = tdiff(filt_time,[ysol(1,1); ysol(:,1); ysol(end,1)]);
+ysol(:,y3) = sign(ysol(:,y3)).*min(0.005,abs(ysol(:,y3)))*mn; % V/min
+usol(:,4) = tdiff(filt_time,filt_current); % A/s
+usol(:,5) = tdiff(filt_time,filt_temp); % K/s
+
+% Rescale and pack up derivatives
+sol.ysol(:,y3) = ysol(it,y3)/Vrng;
+sol.usol(:,4) = usol(it,4)/Um;
+sol.usol(:,5) = usol(it,5)/Trng;
 
 
 %% Extract further information from the dataset
 
-% Compute charge throughput
-QT = trapz(data.Test_Time_s(start:finish),data.Current_A(start:finish));
-if verbose
-    disp(['The total charge throughput is ' num2str(QT/Q) ' Q.']);
-end
-
-% Pass on initial voltage and temperature
-i = max(1,start-1);
-V_init = data.Voltage_V(i);
-if verbose
-    disp(['Starting voltage is ' num2str(V_init) ' V.']);
-end
-if abs(data.Current_A(i))<0.02
-    % Assume measurement starts at steady state
-    [X_init, S_init] = deal(initial_SOC(params,V_init,0.5));
-    if verbose
-        disp(['The corresponding SOC estimate is ' num2str(X_init) '.']);
-    end
-else
-    % Do not pass any SOC estimate
-    [X_init, S_init] = deal(NaN);
-end
-if length(X0)==1
-    sol.xsol(1,1) = X_init;
-else
-    sol.xsol(1,1:2) = [X_init, S_init];
-end
-T_init = data.Temperature_C(i);
-if verbose
-    disp(['And surface temperature is ' num2str(T_init) ' C.']);
-end
-
-% Pass on model parameters
-if contains(DataType,'charge') && ~contains(DataType,'OCV')
-    % Determine initial states from terminal voltage
-    relax_end = start+find((data(start+1:end,:).Cycle_Index==cycle) ...
-                        .*(data(start+1:end,:).Step_Index==step_end+1),1,'last');
+% Estimate the "coulombic efficiency" (CE)
+if contains(DataType,'CV charge') && ~contains(DataType,'OCV')
+    % Include any relaxation period after subset of data
+    trailing_current = [data.Current_A(finish+1:end); 1];
+    relax_end = finish+find(trailing_current~=0,1,'first')-1;
     V_end = data.Voltage_V(relax_end);
     X_end = initial_SOC(params,V_end,0.9);
+    QT = trapz(data.Test_Time_s(i:relax_end),data.Current_A(i:relax_end));
+    % Determine CE from change between equilibrium states
     X_input = X_end-X_init;
-    sol.CE = X_input*Q/QT; % coulombic efficiency
+    CE = X_input*Qn/QT;
     if verbose
-        disp(['Coulombic efficiency of ' num2str(sol.CE)]);
+        disp(['Coulombic efficiency of ' num2str(CE)]);
     end
-elseif strcmp(DataType,'Relaxation')
-    % Estimate initial states from terminal voltage
-    X_init = initial_SOC(params,data.Voltage_V(finish),0.1);
-    S_init = initial_CSC(params,data.Voltage_V(start),X_init);
-    sol.CE = 1;
-    % Use the average temperature as reference
-    if ismember('External_Temp_C', data.Properties.VariableNames)
-        sol.Tref = mean(data.External_Temp_C(tpoints))+CtoK;
-        if verbose
-            disp(['Reference temperature is ' num2str(sol.Tref) ' K']);
-        end
+    if CE < 0.8
+        disp('Coulombic efficiency < 80% ... discarding ...')
+    elseif CE > 1.1
+        disp('Coulombic efficiency > 110% ... discarding ...')
+    elseif any(CE)
+        sol.CE = CE;
     end
 end
+
+% Use the average external temperature as the ambient temperature
+if strcmp(DataType,'Relaxation') ...
+        && ismember('External_Temp_C', data.Properties.VariableNames)
+    sol.Tamb = mean(data.External_Temp_C(tpoints))+CtoK;
+    if verbose
+        disp(['Average ambient temperature is ' num2str(sol.Tamb) ' K']);
+    end
+end
+
+% Rescale and pass on initial state estimates
+if any(X_init), sol.init.X = X_init; end
+if any(S_init), sol.init.S = S_init; end
+if any(T_init), sol.init.T = (T_init+CtoK-TtoK)/Trng; end
 
 
 end

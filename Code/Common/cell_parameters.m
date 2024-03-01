@@ -13,8 +13,8 @@ mn = 60;          % one minute (s)
 hr = 3600;        % one hour (s)
 
 % Define SOC limits
-Sd = 0.1;         % SOC in discharged state (non-dim.)
-Sc = 0.9;         % SOC in fully charged state (non-dim.)
+Sd = 0;           % SOC in discharged state (non-dim.)
+Sc = 1;           % SOC in fully charged state (non-dim.)
 S0 = Sd;          % initial SOC (non-dim.)
 
 % Temperatures

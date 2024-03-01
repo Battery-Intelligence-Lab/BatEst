@@ -17,10 +17,11 @@ function [Model, params] = set_model(ModelName,params,j)
 
 % Unpack parameters
 [Q, nu, miu, Cp, Cps, tauT, tauA, Um, Vcut, Vrng, Trng, ...
-    OCV, Tm, S0] = ...
+    OCV, Tm, S0, fit_derivative] = ...
     struct2array(params, {'Q','nu','miu','Cp','Cps','tauT','tauA' ...
                           'Um','Vcut','Vrng','Trng', ...
-                          'OCV','Tm','S0'});
+                          'OCV','Tm','S0' ...
+                          'fit_derivative'});
 
 % Define an initial guess and uncertainty for each unknown parameter
 guess = [1/Q; nu; miu; 1/Cp; Cp/Cps; 1/tauT; 1/tauA];
@@ -53,17 +54,26 @@ dxdt = @(t,x,y,u,c) [(f(c,1,t)*c{8}*u(1,:)); ...
                          -f(c,7,t)*(x(3,:)-u(2,:)))/c{11} ...
                      ]*c{13};
 
+% Set the initial states
+params.X0 = [S0; 0; 0];
+
 % Define the output equation
-yeqn = @(t,x,u,c) [u(3,:); x(3,:)];
+out = @(t,x,u,c) [u(3,:); x(3,:)];
 
 % Define the mass matrix
 Mass = diag([1; 1; 1; 0; 0]);
 
-% Set the initial states
-params.X0 = [S0; 0; 0];
+if any(fit_derivative==true)
+    warning('The OCVT cannot fit the derivative: the voltage is an input.')
+    params.fit_derivative = false;
+    yeqn = out;
+else
+    yeqn = out;
+end
 
 % Pack up the model
-Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn);
+Model = struct('Name', ModelName, 'Mass',Mass, 'dxdt',dxdt, 'yeqn', yeqn, ...
+               'y2_surface_temp',true);
 params.uncert = uncert; params.fac = fac; params.c0 = c0; params.c = c;
 
 end

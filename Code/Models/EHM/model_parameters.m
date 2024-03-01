@@ -11,11 +11,11 @@ Type = 'EHM';
 Qn = 3.3*hr;         % negative electrode capacity (As)
 nu = 1;              % negative/positive electrode capacity ratio (non-dim.)
 miu = 1;             % cyclable lithium/positive electrode capacity ratio (non-dim.)
-tau_ref = 200;       % diffusion time constant (s)
+tau_ref = 500;       % diffusion time constant (s)
 b = 0.3;             % negative electrode surface/particle volume ratio (non-dim.)
-Ip_ref = 20;         % reference exchange current in the positive electrode (A)
-In_ref = 2;          % reference exchange current in the negative electrode (A)
-Rf = 0.01;           % film resistance (Ohm)
+Ip_ref = 4;          % reference exchange current in the positive electrode (A)
+In_ref = 4;          % reference exchange current in the negative electrode (A)
+Rf = 0.05;           % film resistance (Ohm)
 
 % Update capacity
 CE = 1;              % coulombic efficiency (non-dim.)

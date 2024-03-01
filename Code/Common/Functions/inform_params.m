@@ -30,7 +30,8 @@ elseif strcmp(ModelName,'RORC')
 end
 
 % Update the effective capacity Q using the measured coulombic efficiency
-if isfield(true_sol,'CE') && isfield(params,'CE')
+if (contains(DataType,'charge') && ~contains(DataType,'OCV')) ...
+        && isfield(true_sol,'CE') && isfield(params,'CE')
     CE = true_sol.CE;
     Q = params.Qn/CE;
     params = update(params,1,'rQ',1/Q);

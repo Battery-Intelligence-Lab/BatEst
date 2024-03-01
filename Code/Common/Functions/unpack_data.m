@@ -160,7 +160,7 @@ elseif ismember('Temperature_C', data.Properties.VariableNames)
             data.Temperature_C(start:finish); ...
             repmat(data.Temperature_C(finish),[gaussLength,1])];
 else
-    ambtemp_ext = (Tamb-CtoK)*ones(finish-start+1+2*gaussLength);
+    ambtemp_ext = (Tamb-CtoK)*ones(finish-start+1+2*gaussLength,1);
 end
 filt_temp = conv(ambtemp_ext, gaussFilter, 'valid');
 filt_temp = [filt_temp(1); filt_temp(1:ds:end); filt_temp(end)];

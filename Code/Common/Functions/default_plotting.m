@@ -5,12 +5,12 @@ function params = default_plotting(sol,params)
 [tsol, xsol, ysol, usol, Type, bts, bis] = ...
     struct2array(sol, {'tsol','xsol','ysol','usol','Type','bts','bis'});
 [Um, Vcut, Vrng, Trng, TtoK, CtoK, mn, Crate, fs, OCV, UnFun, UpFun, ...
-    nu, miu, Rf, Rs, y2_surface_temp, fit_derivative] = ...
+    nu, miu, Rf, Rs, fit_derivative] = ...
     struct2array(params, {'Um','Vcut','Vrng','Trng','TtoK','CtoK', ...
                           'mn','Crate','fs','OCV','UnFun','UpFun', ...
-                          'nu','miu','Rf','Rs','y2_surface_temp', ...
-                          'fit_derivative'});
-y2_surface_temp = any(y2_surface_temp); fit_derivative = any(fit_derivative);
+                          'nu','miu','Rf','Rs','fit_derivative'});
+fit_derivative = any(fit_derivative);
+y2_surface_temp = size(sol.ysol,2)>1+fit_derivative;
 
 % Rescale the variables
 time = tsol/mn; % time period (min)
@@ -57,11 +57,6 @@ else
     subplot(2,2,3); hold on;
     xlim(tlim); xlabel('Time (min)');
     ylim(Xlim);
-    if y2_surface_temp
-        subplot(2,2,4); hold on;
-        xlim(tlim); xlabel('Time (min)');
-        ylim(Tlim);
-    end
 
     % Add C-rate markers
     subplot(2,2,1); hold on;
@@ -159,24 +154,24 @@ else
 end
 
 % Plot the temperature
-if size(usol,2)>1 && strcmp(Type,'True')
+if (size(usol,2)>1 && strcmp(Type,'True')) || y2_surface_temp ...
+        || (size(xsol,2)>3 && sum(~isnan(xsol(:,3)))>0)
     subplot(2,2,4); hold on;
-    plot(time,usol(:,2),LineSpec1,DisplayName=[Type ' Te']);
-    plot(bts,usol(bis,2),LineSpecB);
-    ylim(Tlim); ylabel('Te (deg C)');
+    xlim(tlim); xlabel('Time (min)');
+    ylim(Tlim); ylabel('Temperature (deg C)');
     legend(Location='Best');
-end
-if y2_surface_temp
-    subplot(2,2,4); hold on;
-    plot(time,ysol(:,2),LineSpec2,DisplayName=[Type ' Ts']);
-    plot(bts,ysol(bis,2),LineSpecB);
-    ylabel('Te, Ts (deg C)');
-end
-if size(xsol,2)>3 && sum(~isnan(xsol(:,3)))>0
-    subplot(2,2,4); hold on;
-    plot(time,xsol(:,3),LineSpec3,DisplayName=[Type ' Tc']);
-    plot(bts,xsol(bis,3),LineSpecB);
-    ylabel('Te, Ts, Tc (deg C)');
+    if size(usol,2)>1 && strcmp(Type,'True')
+        plot(time,usol(:,2),LineSpec1,DisplayName=[Type ' Te']);
+        plot(bts,usol(bis,2),LineSpecB);
+    end
+    if y2_surface_temp
+        plot(time,ysol(:,2),LineSpec2,DisplayName=[Type ' Ts']);
+        plot(bts,ysol(bis,2),LineSpecB);
+    end
+    if size(xsol,2)>3 && sum(~isnan(xsol(:,3)))>0
+        plot(time,xsol(:,3),LineSpec3,DisplayName=[Type ' Tc']);
+        plot(bts,xsol(bis,3),LineSpecB);
+    end
 end
 
 drawnow;

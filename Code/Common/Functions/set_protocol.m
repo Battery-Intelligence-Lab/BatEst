@@ -42,7 +42,9 @@ params.tt = tt; % time period (s)
 params.uu(:,1) = uu(:,1); % dimensionless current (between -1 and 1)
 params.uu(:,2) = uu(:,2); % dimensionless temperature (between 0 and 1)
 params.uu(:,3) = uu(:,3); % dimensionless voltage (between 0 and 1)
-params.uu(:,4) = uu(:,4); % dimensionless current derivative
-params.uu(:,5) = uu(:,5); % dimensionless temperature derivative
+if size(uu,2)>3
+    params.uu(:,4) = uu(:,4); % dimensionless current derivative
+    params.uu(:,5) = uu(:,5); % dimensionless temperature derivative
+end
 
 end

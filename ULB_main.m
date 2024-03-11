@@ -30,7 +30,7 @@ end
 %% Iterations
 % Load index of measurement data to access multiple files
 % index_filename = 'Data/test_index.parquet';
-folder = '../../../Data from Brussels/Final Dataset/';
+folder = 'Data/ULB/Final Dataset/';
 index_filename = 'Test_Index.parquet';
 index = parquetread([folder index_filename]);
 
@@ -53,8 +53,8 @@ for k = filenumbers(filenumbers>=k_restart)
 % Reset the parameters for each cell
 if k==filenumber1, out = []; params = input_params; end
 
-if k==149
-    warning('Skipping 149...');
+if any(k==[149,211,435])
+    warning(['Skipping ' num2str(k) '...']);
     continue;
 end
 
@@ -160,13 +160,19 @@ out = tabulate_output(params,out,n,k);
 
 % Save output and current figure (true = overwrite by default)
 if strcmp(Target,'Parameter')
+    if ~isfolder(['Data/ULB/Cell' num2str(n)]), mkdir(['Data/ULB/Cell' num2str(n)]); end
     if j==3
-        save_output(out,['Data/ULB/Run 5/Cell' num2str(n) '/out_' ModelName '0_' num2str(k) '_' num2str(cycle)],true);
-        save_plot(gcf,['Data/ULB/Run 5/Cell' num2str(n) '/plot_' ModelName '0_' num2str(k) '_' num2str(cycle)],true);
+        save_output(out,['Data/ULB/Cell' num2str(n) '/out_' ModelName '0_' num2str(k) '_' num2str(cycle)],true);
+        save_plot(gcf,['Data/ULB/Cell' num2str(n) '/plot_' ModelName '0_' num2str(k) '_' num2str(cycle)],true);
     else
-        save_output(out,['Data/ULB/Run 5/Cell' num2str(n) '/out_' ModelName '_' num2str(k) '_' num2str(cycle)],true);
-        save_plot(gcf,['Data/ULB/Run 5/Cell' num2str(n) '/plot_' ModelName '_' num2str(k) '_' num2str(cycle)],true);
+        save_output(out,['Data/ULB/Cell' num2str(n) '/out_' ModelName '_' num2str(k) '_' num2str(cycle)],true);
+        save_plot(gcf,['Data/ULB/Cell' num2str(n) '/plot_' ModelName '_' num2str(k) '_' num2str(cycle)],true);
     end
+end
+
+if any(k==[159,160]) && cycle==4
+    warning('Only 4 cycles in 159 and 160...');
+    cycle = 12;
 end
 
 if index.OCV_Test(k)==true

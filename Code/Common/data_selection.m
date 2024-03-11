@@ -8,15 +8,19 @@ function [cycle_step, DataType] = data_selection(j)
 % entry to 'cycle_step' equal to the last Step_Index in the sequence.
 
 % Select subset of data
-if j==1
-    cycle_step = [0;10];
+% cycle_step = [1;5];
+if j(2)==3
+    cycle_step = j;
     DataType = 'Pseudo-OCV charge';
-elseif j==2
-    cycle_step = [0;5];
+elseif any(j(2)==[9,10,11])
+    cycle_step = j;
     DataType = 'Relaxation';
-elseif j>2
-    cycle_step = [0;6];
+else
+    cycle_step = j;
     DataType = 'CCCV charge';
 end
+% [j;6] for Campaign 003, [j;7;8] for Campaign 009,
+% [j,16,22], j=1:3, for pulse data, [1;11] for C/2 CCCV charge,
+% [1,3,4] for pseudo-OCV charge and discharge, [1;10] for relaxation
 
 end

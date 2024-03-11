@@ -6,13 +6,13 @@ function sol = unpack_data(data,params,j)
 % saved within the 'sol' structure. The vectors must be column vectors.
 
 % Unpack parameters
-[mn, Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Qn, cycle_step, DataType, ...
-    verbose] = ...
-    struct2array(params,{'mn','Um','Vcut','Vrng','TtoK','CtoK','Trng','Tamb', ...
-                         'X0','Qn','cycle_step','DataType','verbose'});
-if ~any(Trng)
-    [TtoK, CtoK, Trng] = deal(1); % no scaling
-end
+[mn, Um, Vcut, Vrng, TtoK, CtoK, Trng, Tamb, X0, Qn, cycle_step, ...
+    DataType, fit_derivative, verbose] = ...
+    struct2array(params,{'mn','Um','Vcut','Vrng','TtoK','CtoK','Trng', ...
+                         'Tamb','X0','Qn','cycle_step','DataType', ...
+                         'fit_derivative','verbose'});
+fit_derivative = any(fit_derivative);
+if ~any(Trng), [TtoK, CtoK, Trng] = deal(1); end % no scaling
 
 % Ensure that time series data is of type double
 column_names = data.Properties.VariableNames;
@@ -73,7 +73,7 @@ if strcmp(DataType,'Relaxation')
     % Assume zero current and determine from terminal voltage
     X_init = initial_SOC(params,data.Voltage_V(finish),0.03);
     S_init = initial_CSC(params,data.Voltage_V(start),X_init);
-elseif abs(data.Current_A(i))<0.05
+elseif abs(data.Current_A(i))<0.05 || contains(DataType,'OCV')
     % Assume measurement starts at steady state
     [X_init, S_init] = deal(initial_SOC(params,V_init,0.5));
 end
@@ -138,49 +138,51 @@ sol.usol(:,3) = sol.ysol(:,1);
 sol.xsol = NaN(length(it),length(X0));
 sol.DataType = DataType;
 
-% Filtering requires Signal Processing Toolbox
-% Set up Gaussian window filter for reducing noise before taking derivative
-sigma = 10; % pick sigma value for the gaussian (higher = more smoothing)
-gaussFilter = gausswin(6*sigma + 1)';
-gaussFilter = gaussFilter / sum(gaussFilter); % normalize
-gaussLength = (length(gaussFilter)-1)/2;
-
-% Apply filter via convolution
-current_ext = [repmat(data.Current_A(start),[gaussLength,1]); ...
-            data.Current_A(start:finish); ...
-            repmat(data.Current_A(finish),[gaussLength,1])];
-filt_current = conv(current_ext, gaussFilter, 'valid');
-filt_current = [0; filt_current(1:ds:end); 0];
-if ismember('External_Temp_C', data.Properties.VariableNames) ...
-    && ismember('Temperature_C', data.Properties.VariableNames)
-    ambtemp_ext = [repmat(data.External_Temp_C(start),[gaussLength,1]); ...
-            data.External_Temp_C(start:finish); ...
-            repmat(data.External_Temp_C(finish),[gaussLength,1])];
-elseif ismember('Temperature_C', data.Properties.VariableNames)
-    ambtemp_ext = [repmat(data.Temperature_C(start),[gaussLength,1]); ...
-            data.Temperature_C(start:finish); ...
-            repmat(data.Temperature_C(finish),[gaussLength,1])];
-else
-    ambtemp_ext = (Tamb-CtoK)*ones(finish-start+1+2*gaussLength,1);
+if fit_derivative
+    % Filtering requires Signal Processing Toolbox
+    % Set up Gaussian window filter for reducing noise before taking derivative
+    sigma = 10; % pick sigma value for the gaussian (higher = more smoothing)
+    gaussFilter = gausswin(6*sigma + 1)';
+    gaussFilter = gaussFilter / sum(gaussFilter); % normalize
+    gaussLength = (length(gaussFilter)-1)/2;
+    
+    % Apply filter via convolution
+    current_ext = [repmat(data.Current_A(start),[gaussLength,1]); ...
+                data.Current_A(start:finish); ...
+                repmat(data.Current_A(finish),[gaussLength,1])];
+    filt_current = conv(current_ext, gaussFilter, 'valid');
+    filt_current = [0; filt_current(1:ds:end); 0];
+    if ismember('External_Temp_C', data.Properties.VariableNames) ...
+        && ismember('Temperature_C', data.Properties.VariableNames)
+        ambtemp_ext = [repmat(data.External_Temp_C(start),[gaussLength,1]); ...
+                data.External_Temp_C(start:finish); ...
+                repmat(data.External_Temp_C(finish),[gaussLength,1])];
+    elseif ismember('Temperature_C', data.Properties.VariableNames)
+        ambtemp_ext = [repmat(data.Temperature_C(start),[gaussLength,1]); ...
+                data.Temperature_C(start:finish); ...
+                repmat(data.Temperature_C(finish),[gaussLength,1])];
+    else
+        ambtemp_ext = (Tamb-CtoK)*ones(finish-start+1+2*gaussLength,1);
+    end
+    filt_temp = conv(ambtemp_ext, gaussFilter, 'valid');
+    filt_temp = [filt_temp(1); filt_temp(1:ds:end); filt_temp(end)];
+    filt_time = [data.Test_Time_s(start)-1; ...
+                 data.Test_Time_s(tpoints); ...
+                 data.Test_Time_s(finish)+1]-data.Test_Time_s(start);
+    
+    % Compute dVdt capped by maximum expected gradient, dIdt and dTdt
+    tdiff = @(t,y) (y(3:end,1)-y(1:end-2,1))./(t(3:end,1)-t(1:end-2,1));
+    y3 = 2+y2_surface_temp;
+    ysol(:,y3) = tdiff(filt_time,[ysol(1,1); ysol(:,1); ysol(end,1)]);
+    ysol(:,y3) = sign(ysol(:,y3)).*min(0.005,abs(ysol(:,y3)))*mn; % V/min
+    usol(:,4) = tdiff(filt_time,filt_current); % A/s
+    usol(:,5) = tdiff(filt_time,filt_temp); % K/s
+    
+    % Rescale and pack up derivatives
+    sol.ysol(:,y3) = ysol(it,y3)/Vrng;
+    sol.usol(:,4) = usol(it,4)/Um;
+    sol.usol(:,5) = usol(it,5)/Trng;
 end
-filt_temp = conv(ambtemp_ext, gaussFilter, 'valid');
-filt_temp = [filt_temp(1); filt_temp(1:ds:end); filt_temp(end)];
-filt_time = [data.Test_Time_s(start)-1; ...
-             data.Test_Time_s(tpoints); ...
-             data.Test_Time_s(finish)+1]-data.Test_Time_s(start);
-
-% Compute dVdt capped by maximum expected gradient, dIdt and dTdt
-tdiff = @(t,y) (y(3:end,1)-y(1:end-2,1))./(t(3:end,1)-t(1:end-2,1));
-y3 = 2+y2_surface_temp;
-ysol(:,y3) = tdiff(filt_time,[ysol(1,1); ysol(:,1); ysol(end,1)]);
-ysol(:,y3) = sign(ysol(:,y3)).*min(0.005,abs(ysol(:,y3)))*mn; % V/min
-usol(:,4) = tdiff(filt_time,filt_current); % A/s
-usol(:,5) = tdiff(filt_time,filt_temp); % K/s
-
-% Rescale and pack up derivatives
-sol.ysol(:,y3) = ysol(it,y3)/Vrng;
-sol.usol(:,4) = usol(it,4)/Um;
-sol.usol(:,5) = usol(it,5)/Trng;
 
 
 %% Extract further information from the dataset

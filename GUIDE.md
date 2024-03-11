@@ -103,19 +103,7 @@ By considering the form of the model, we find that different subsets of these pa
 
 Note that, in practice, there is a difference between the value of the negative electrode capacity (`Qn`) determined from a pseudo-OCV measurement and from a dynamic measurement. This discrepancy may arise from voltage hysteresis or measurement error. In order to deal with this discrepancy in a principled way and prevent it from affecting the estimation of the dynamic parameters, we compute a coulombic efficiency `CE` equal to the ratio between the integrated charge throughput during a dynamic charge/discharge measurement `QT` to the change in stored charge expected from the corresponding change in steady-state voltage (given the OCV function). This parameter is computed within [`unpack_data.m`](Code/Common/Functions/unpack_data.m) and passed to the parameter set by [`inform_params.m`](Code/Common/Functions/inform_params.m).
 
-In order to perform this step-by-step estimation, `open cell_parameters` and uncomment the lines:
-```
-if j==1
-    cycle_step = [0;10];
-    DataType = 'Pseudo-OCV charge';
-elseif j==2
-    cycle_step = [0;5];
-    DataType = 'Relaxation';
-elseif j>2
-    cycle_step = [0;6];
-    DataType = 'CCCV charge';
-end
-```
+In order to perform this step-by-step estimation, we will be making use of the `data_selection` function to select different sections of the `Dataset` for each step of the parameterisation via the `cycle_step` index and labelling the `DataType` using one of the following key phrases: `'Pseudo-OCV charge'`, `'Relaxation'`, `'CCCV charge'` or `'Cycling'`.
 
 Now we are ready to run the 3-step estimation of the `RORC` parameters using `out = main_multi;`. There is no need to pass any dataset this time because `main_multi.m` locates and loads the Dataset using the index of available datasets in Data/Examples/Test_Index.parquet. Feel free to use this parquet table as a template to store details of your own datasets.
 
@@ -154,6 +142,8 @@ The choice of parameters to estimate is made according to the uncertainty valuse
 ## d) How to Import a Dataset
 
 Data can be imported into MATLAB from a number of different file formats. For analysis via `unpack_data.m`, the data must be converted to a MATLAB table with the expected set of column headers. See the [DATA_PREP_GUIDE](Data/DATA_PREP_GUIDE.md) for guidelines on the expected data import process.
+
+Use the `data_selection` function to select particular sections of the `Dataset` according to the index of step and cycle numbers.
 
 ## e) How to Change the Electrode OCP Functions
 

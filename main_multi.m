@@ -46,8 +46,8 @@ for j = rep_num
 % Target: choose from Simulate, Plot, Compare or Parameter
 % Estimator: choose from the available Methods (Fmincon, PEM)
 
-% Settings
 if j==1
+    % Settings
     ModelName = 'OCV';
     Target = 'Parameter';
     Estimator = 'PEM';
@@ -71,6 +71,7 @@ params.fit_derivative = false; % true or false
 Model.Noise = false; % true or false
 
 % Load or generate data
+[params.cycle_step, params.DataType] = data_selection(j);
 [true_sol, params] = step1(Target,Model,params,j,Dataset);
 
 % Perform estimation and update parameter values

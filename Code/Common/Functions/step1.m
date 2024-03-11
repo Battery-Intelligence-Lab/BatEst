@@ -6,6 +6,10 @@ true_sol = [];
 % Unpack model properties
 [ModelName, Noise] = struct2array(Model,{'Name','Noise'});
 
+% Check for data selection
+if ~isfield(params, 'cycle_step'), params.cycle_step = []; end
+if ~isfield(params, 'DataType'), params.DataType = ''; end
+
 if istable(Dataset) && any(strcmp(Target,{'Simulate','Plot','Compare','Parameter'}))
     % Unpack the data
     true_sol = unpack_data(Dataset,params,j);

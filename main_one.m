@@ -27,6 +27,7 @@ if ~exist('input_params','var'), input_params = []; end
 ModelName = 'EHMT';
 Target = 'Simulate';
 Estimator = 'PEM';
+j = 0;
 
 
 %% Start
@@ -39,17 +40,17 @@ addpath(genpath(strcat('./Code/Methods/',Estimator)));
 
 % Define dimensionless model
 input_params.fit_derivative = false; % true or false
-[Model, params] = step0(ModelName,0,input_params);
+[Model, params] = step0(ModelName,j,input_params);
 Model.Noise = false; % true or false
 
 % Load or generate data
-[true_sol, params] = step1(Target,Model,params,6,Dataset);
+[true_sol, params] = step1(Target,Model,params,j,Dataset);
 
 % Perform estimation and update parameter values
-[est_sol,  params] = step2(Target,Model,params,0);
+[est_sol,  params] = step2(Target,Model,params,j);
 
 % Run simulation using updated parameters
-[pred_sol, params] = step3(Target,Model,params,0,est_sol);
+[pred_sol, params] = step3(Target,Model,params,j,est_sol);
 
 % Compare prediction and data
 params = step4(Target,params,true_sol,pred_sol);

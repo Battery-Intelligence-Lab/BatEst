@@ -35,9 +35,6 @@ filenames = index.File_Name(file_index(:));
 subfolder = index.Folder_Name(file_index(:));
 for k = 1:length(filenames)
 
-% Reset the parameters for each test
-params = input_params;
-
 % Set the section number(s) or number of repetitions
 rep_num = 1:3;
 for j = rep_num
@@ -54,7 +51,7 @@ if j==1
     ModelName = 'OCV';
     Target = 'Parameter';
     Estimator = 'PEM';
-    Dataset = import_parquet([subfolder{j} '/' filenames{j}]);
+    Dataset = import_parquet([subfolder{k} '/' filenames{k}]);
 elseif j==2
     ModelName = 'RORC';
 end
@@ -74,6 +71,7 @@ params.fit_derivative = false; % true or false
 Model.Noise = false; % true or false
 
 % Load or generate data
+[params.cycle_step, params.DataType] = data_selection(j);
 [true_sol, params] = step1(Target,Model,params,j,Dataset);
 
 % Perform estimation and update parameter values
